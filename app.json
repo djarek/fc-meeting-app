@@ -9,6 +9,9 @@
       "quantity": 1
     }
   },
+  "scripts": {
+    "postdeploy": "python migrate.py migrate"
+  },
   "addons": [
     "heroku-postgresql"
   ],

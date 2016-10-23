@@ -6,3 +6,4 @@ whitenoise==2.0.6
 django-registration==2.1.2
 django-bootstrap3
 django-bootstrap3-datetimepicker
+whitenoise==2.0.6
