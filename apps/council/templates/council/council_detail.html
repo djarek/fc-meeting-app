@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb_list %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
+        <li class="active">{{ object }}</li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    <div class="col-xs-12 col-md-12">
+        <h1>{{ object }}</h1>
+
+        <table class="table table-bordered table-striped">
+            <tr>
+                <td><strong>Kadencja</strong></td>
+                <td>{{ object.term }}</td>
+            </tr>
+            <tr>
+                <td><strong>Początek kadencji</strong></td>
+                <td>{{ object.begin_year }}</td>
+            </tr>
+            <tr>
+                <td><strong>Koniec kadencji</strong></td>
+                <td>{{ object.end_year }}</td>
+            </tr>
+            <tr>
+                <td><strong>Dziekan</strong></td>
+                <td>{{ object.dean }}</td>
+            </tr>
+        </table>
+
+    <br>
+
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active">
+                <a href="#meetings" aria-controls="meetings" role="tab" data-toggle="tab">Spotkania</a>
+            </li>
+            <li role="presentation"><a href="#members" aria-controls="members" role="tab" data-toggle="tab">Członkowie</a></li>
+        </ul>
+
+        <div class="tab-content tab-content-bordered">
+            <div role="tabpanel" class="tab-pane active" id="meetings">
+                <h1>Spotkania Rady</h1>
+
+                <a class="btn btn-primary" href="{% url 'add_meeting' object.pk %}">
+                    <i class="fa fa-plus"></i> Dodaj spotkanie
+                </a>
+                <br><br>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Kod</th>
+                        <th>Data</th>
+                        <th>Miejsce</th>
+                        <th>Akcje</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for meeting in meeting_list %}
+                        <tr>
+                            <td>{{ meeting.code }}</td>
+                            <td>{{ meeting.date|date:'d.m.Y' }}</td>
+                            <td>{{ meeting.place }}</td>
+                            <td>
+                                <a href="{% url 'meeting_detail' meeting.pk %}">
+                                    <button class="btn btn-default btn-info">Zobacz</button>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="members">
+                <h1>Członkowie Rady Wydziału</h1>
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Tytuł/Stopień naukowy</th>
+                        <th>Imię</th>
+                        <th>Nazwisko</th>
+                        <th>Adres e-mail</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for o in os %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+{% endblock %}

@@ -1,14 +1,16 @@
 
-<a class="navbar-brand" href="#">RWE</a>
-	<div id="navbar">
-		<nav class="nav navbar-nav pull-xs-left">
-		<a class="nav-item nav-link active" href="">Home</a>
-		{% if user.is_authenticated %}
-		<a class="nav-item nav-link" href="{% url 'meeting_list' %}">Lista</a>
-			<a class="nav-item nav-link" href="{% url 'auth_logout' %}?next=/">Wyloguj</a>
-		{% else %}
-			<a class="nav-item nav-link" href="{% url 'registration_register' %}">Zarejestruj się</a>
-			<a class="nav-item nav-link" href="{% url 'login' %}">Zaloguj</a>
-		{% endif %}
-		</nav>
-	</div>
+<ul>
+    {% if user.is_authenticated %}
+        <li>
+            <a href="{% url 'council_list' %}"><span class="icon-calendar-full"></span> Rady Wydziału</a>
+
+        </li>
+        <li>
+            <a href="{% url 'person_list' %}"><span class="icon-users"></span> Użytkownicy</a>
+        </li>
+    {% else %}
+        <li>
+            <a href="{% url 'login' %}"><span class="icon-lock"></span> Login</a>
+        </li>
+    {% endif %}
+</ul>

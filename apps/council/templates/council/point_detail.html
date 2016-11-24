@@ -1,79 +1,132 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block breadcrumb_list %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
+        <li><a href="{% url 'council_detail' object.meeting.council.pk %}">{{ object.meeting.council }}</a></li>
+        <li><a href="{% url 'meeting_detail' object.meeting.pk %}">{{ object.meeting }}</a></li>
+        <li class="active">{{ object }}</li>
+    </ol>
+{% endblock %}
 
 {% block content %}
-    <h1>Szczegóły punktu </h1>
-    <table class="table table-bordered">
-        <tr>
-            <td><strong>Spotkanie</strong></td><td>{{ object.meeting.code }}</td>
-        </tr>
-        <tr>
-            <td><strong>Opiekun</strong></td><td>{{ object.owner }}</td>
-        </tr>
-        <tr>
-            <td><strong>Rodzaj sprawy</strong></td><td>{{ object.point_type }}</td>
-        </tr>
-        <tr>
-            <td><strong>Tytuł</strong></td><td>{{ object.title }}</td>
-        </tr>
-        <tr>
-            <td><strong>Opis</strong></td><td>{{ object.description }}</td>
-        </tr>
-        <tr>
-            <td><strong>Tajne głosowanie</strong></td>
-            <td>{% if point.is_secret %}Tak
-                {% else %}Nie
-                {% endif %}
-            </td>
-        </tr>
-        <tr>
-            <td><strong>Małe kworum</strong></td>
-            <td>{% if point.small_quorum %}Tak
-                {% else %}Nie
-                {% endif %}
-            </td>
-        </tr>
-    </table>
-    <h2>Załączniki</h2>
-    <div class="input-group">
-        <span class="input-group-btn">
-            <label class="btn btn-primary btn-file" for="multiple_input_group">
-                <div class="input required"><input id="multiple_input_group" type="file" multiple></div> Browse
-            </label>
-        </span>
-        <span class="file-input-label"></span>
+    <div class="col-xs-12 col-md-12">
+        <h1>{{ object }}</h1>
+
+        <table class="table table-bordered table-striped">
+            <tr>
+                <td><strong>Spotkanie</strong></td><td>{{ object.meeting.code }}</td>
+            </tr>
+            <tr>
+                <td><strong>Opiekun</strong></td><td>{{ object.owner }}</td>
+            </tr>
+            <tr>
+                <td><strong>Rodzaj sprawy</strong></td><td>{{ object.point_type }}</td>
+            </tr>
+            <tr>
+                <td><strong>Tytuł</strong></td><td>{{ object.title }}</td>
+            </tr>
+            <tr>
+                <td><strong>Opis</strong></td><td>{{ object.description }}</td>
+            </tr>
+            <tr>
+                <td><strong>Tajne głosowanie</strong></td>
+                <td>{% if point.is_secret %}Tak
+                    {% else %}Nie
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td><strong>Małe kworum</strong></td>
+                <td>{% if point.small_quorum %}Tak
+                    {% else %}Nie
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+
+        <br>
+
+        <ul class="nav nav-tabs bordered" role="tablist">
+            <li role="presentation" class="active">
+                <a href="#attachments" aria-controls="attachments" role="tab" data-toggle="tab">Załączniki</a>
+            </li>
+            <li role="presentation">
+                <a href="#upload" aria-controls="upload" role="tab" data-toggle="tab">Dodaj załączniki</a>
+            </li>
+        </ul>
+
+        <div class="tab-content tab-content-bordered">
+            <div role="tabpanel" class="tab-pane active" id="attachments">
+                <h1>Załączniki</h1>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Nazwa</th>
+                        <th>Akcje</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for point in point_list %}
+                        <tr>
+                            <td>{{ point.owner }}</td>
+                            <td>
+                                <a href="#">
+                                    <button class="btn btn-default btn-info">Pobierz</button>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div role="tabpanel" class="tab-pane" id="upload">
+                <h1>Dodaj załączniki</h1>
+
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <label class="btn btn-primary btn-file" for="multiple_input_group">
+                            <div class="input required"><input id="multiple_input_group" type="file" multiple></div> Browse
+                        </label>
+                    </span>
+                    <span class="file-input-label"></span>
+                </div>
+            </div>
+        </div>
+
     </div>
 {% endblock %}
-{% block scripts %}
-    <script>
-        $(function(){
-            $('.btn-file :file').change(function() {
-                var input = $(this),
-                        numFiles = input.get(0).files ? input.get(0).files.length : 1,
-                        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
-                input.trigger('fileselect', [numFiles, label]);
-            });
-            $('.btn-file :file').on('fileselect', function(event, numFiles, label) {
-                var input_label = $(this).closest('.input-group').find('.file-input-label')
-
-                var log = numFiles > 1 ? numFiles + ' files selected' : label;
-                if(numFiles === 0) {
-                    log = 'Nie wybrano plików';
-                } else if(numFiles === 1) {
-                    log = numFiles + ' wybrany plik';
-                } else if(numFiles > 1 && numFiles < 5) {
-                    log = numFiles + ' wybrane pliki';
-                } else {
-                    log = numFiles + ' wybranych plików'
-                }
-
-                if(input_label.length) {
-                    input_label.text(log);
-                } else {
-                    if(log) alert(log);
-                }
-            });
-        })
-    </script>
-{% endblock %}
+{#{% block scripts %}#}
+{#    <script>#}
+{#        $(function(){#}
+{#            $('.btn-file :file').change(function() {#}
+{#                var input = $(this),#}
+{#                        numFiles = input.get(0).files ? input.get(0).files.length : 1,#}
+{#                        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');#}
+{#                input.trigger('fileselect', [numFiles, label]);#}
+{#            });#}
+{#            $('.btn-file :file').on('fileselect', function(event, numFiles, label) {#}
+{#                var input_label = $(this).closest('.input-group').find('.file-input-label')#}
+{##}
+{#                var log = numFiles > 1 ? numFiles + ' files selected' : label;#}
+{#                if(numFiles === 0) {#}
+{#                    log = 'Nie wybrano plików';#}
+{#                } else if(numFiles === 1) {#}
+{#                    log = numFiles + ' wybrany plik';#}
+{#                } else if(numFiles > 1 && numFiles < 5) {#}
+{#                    log = numFiles + ' wybrane pliki';#}
+{#                } else {#}
+{#                    log = numFiles + ' wybranych plików'#}
+{#                }#}
+{##}
+{#                if(input_label.length) {#}
+{#                    input_label.text(log);#}
+{#                } else {#}
+{#                    if(log) alert(log);#}
+{#                }#}
+{#            });#}
+{#        })#}
+{#    </script>#}
+{#{% endblock %}#}

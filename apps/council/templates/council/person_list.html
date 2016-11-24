@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb_list %}
+    <ol class="breadcrumb">
+        <li class="active">Użytkownicy</li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    <div class="col-xs-12 col-md-12">
+        <h1>Użytkownicy</h1>
+
+        <a class="btn btn-primary" href="{% url 'add_person' %}">
+            <i class="fa fa-user-plus"></i> Dodaj użytkownika
+        </a>
+
+        <br><br>
+
+        <table class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <th>Tytuł/stopień naukowy</th>
+                <th>Imię</th>
+                <th>Nazwisko</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for obj in object_list %}
+                <tr>
+                    <td>{{ obj.scientific_title }}</td>
+                    <td>{{ obj.first_name }}</td>
+                    <td>{{ obj.last_name }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

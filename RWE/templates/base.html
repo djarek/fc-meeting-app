@@ -1,68 +1,187 @@
 <!DOCTYPE html>
 {% load i18n %}
 {% load staticfiles %}
+{% load permission_tags %}
 <html lang="en">
-<head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<meta name="description" content="">
-	<meta name="author" content="">
-	<title>
-	{% block title %}Rada Wydział Elektroniki{% endblock %}
-	</title>
+    <head>
+        <title>
+            {% block title %}Rada Wydział Elektroniki{% endblock %}
+        </title>
+
+{#    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}" >#}
+
+{#    <link rel="stylesheet" href="{% static 'custom/css/style.css' %}"/>#}
+
+{#    <link rel="stylesheet" href="{% static 'custom/css/navbar-custom.css' %}"/>#}
+
+{#    <link rel="stylesheet" href="{% static 'jquery/jquery-ui/jquery-ui.min.css' %}">#}
+
+{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.css"/>#}
 
 
-	<link rel="stylesheet" href="https://v4-alpha.getbootstrap.com/dist/css/bootstrap.min.css" >
+        <!-- META SECTION -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+        <link rel="shortcut icon" href="{% static 'images/logo.PNG' %}" type="image/x-icon">
+        <link rel="icon" href="favicon.ico" type="image/x-icon">
+        <!-- END META SECTION -->
 
-	<link rel="stylesheet" href="{% static 'css/navbar-custom.css' %}"/>
+        <!-- CSS INCLUDE -->
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}"/>
 
-	<link rel="stylesheet" href="https://code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="{% static 'css/styles2.css' %}"/>
 
-	<link rel="stylesheet" href="https://v4-alpha.getbootstrap.com/examples/dashboard/dashboard.css">
+        <!-- EOF CSS INCLUDE -->
+    </head>
 
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-ui-timepicker-addon/1.6.3/jquery-ui-timepicker-addon.css"/>
+    <body>
+    <!-- APP WRAPPER -->
+    <div class="app">
 
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
-</head>
-<body>
-<nav class="navbar navbar-custom navbar-fixed-top">
-	{% include 'menu.html' %}
-</nav>
-<div class="container-fluid">
-	<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-		{% block content %}
-		{% endblock %}
-	</div>
-</div>
+        <!-- START APP CONTAINER -->
+        <div class="app-container">
 
-{% block scripts %}
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js">
-	</script>
-	<script src="https://v4-alpha.getbootstrap.com/dist/js/bootstrap.min.js">
+            <!-- START APP HEADER -->
+            <div class="app-header">
 
-	</script>
-	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-	<script src="https://v4-alpha.getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js">
-	</script>
-	<script>
-		$(function (){
-			$('.form-group input').each(function() {
-				$(this).addClass('form-control');
-			});
-			$('.form-group textarea').each(function() {
-				$(this).addClass('form-control');
-			});
-			$('.form-group checkbox').each(function() {
-				$(this).addClass('form-control');
-			});
-			$('.form-group select').each(function() {
-				$(this).addClass('form-control');
-			});
-		});
-	</script>
-{% endblock %}
-</body>
+                <div class=" navbar-brnd bag-name">
+                    <a href="{% url 'home' %}"><img class=""
+                                    src="{% static 'images/logo.PNG' %}">Rada Wydziału Elektroniki</a>
+                </div>
+
+                <ul class="app-header-buttons visible-mobile">
+                    <li><a href="#" class="btn btn-link btn-icon" data-navigation-horizontal-toggle="true"><span class="icon-menu"></span></a></li>
+                </ul>
+                <a href="index.html" class="app-header-logo app-header-logo-light app-header-logo-condensed">Project</a>
+
+                <ul class="app-header-buttons pull-right">
+                    <li>
+                        <div class="contact  contact-lg contact-ps-controls">
+                            <img src="" alt="">
+                            <div class="contact-container">
+                                <a href="http://pwr.edu.pl">Politechnika Wrocławska</a>
+                                <span>Administrator</span>
+                            </div>
+                            <div class="contact-controls">
+                                <div class="dropdown">
+                                    <button type="button" class="btn btn-default btn-icon" data-toggle="dropdown"><span class="icon-cog"></span></button>
+                                    <ul class="dropdown-menu dropdown-left">
+                                        <li><a href="#"><span class="icon-cog"></span> Settings</a></li>
+                                        <li><a href="#"><span class="icon-envelope"></span> Messages <span class="label label-danger pull-right"></span></a></li>
+
+                                        <li class="divider"></li>
+                                        <li><a href="{% url 'auth_logout' %}?next=/"><span class="icon-exit"></span> Log Out</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <!-- END APP HEADER  -->
+
+            <!-- START APP CONTENT -->
+            <div class="app-content">
+                <div class="app-navigation-horizontal">
+                    <nav>
+                        {% include 'menu.html' %}
+                    </nav>
+
+
+                </div>
+                <!-- END APP CONTENT -->
+
+
+                <!-- START PAGE HEADING -->
+
+                <div class="app-heading-container app-heading-bordered bottom">
+                    {% block breadcrumb_list %}
+                    {% endblock %}
+                </div>
+                <!-- END PAGE HEADING -->
+
+
+                <div class="container">
+                    <div class="block block-condensed">
+                        <div class="app-heading app-heading-small">
+                            {% block content %}
+                            {% endblock %}
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="app-overlay"></div>
+
+            <div class="app-footer app-footer-default" id="footer">
+
+                <div class="container container-boxed">
+                    <div class="app-footer-line">
+                        <div class="copyright">© 2016 Politechnika Wrocławska, Rada Wydziału Elektroniki.</div>
+                        <div class="pull-right">
+                            <ul class="list-inline">
+                                <li><a href="#">About</a></li>
+                                <li><a href="#">Help</a></li>
+                                <li><a href="#">Contacts</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+    </div>
+
+
+        <!-- IMPORTANT SCRIPTS -->
+        <script type="text/javascript" src="{% static 'js/vendor/jquery/jquery.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/jquery/jquery-ui.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/bootstrap/bootstrap.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/moment/moment.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/vendor/customscrollbar/jquery.mCustomScrollbar.min.js' %}"></script>
+        <!-- END IMPORTANT SCRIPTS -->
+        <!-- THIS PAGE SCRIPTS -->
+        <script type="text/javascript" src="{% static 'js/vendor/bootstrap-select/bootstrap-select.js' %}"></script>
+        <!-- END THIS PAGE SCRIPTS -->
+        <!-- APP SCRIPTS -->
+        <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/app_plugins.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/app_demo.js' %}"></script>
+
+        <script src="http://v4-alpha.getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+
+        <!-- END APP SCRIPTS -->
+        <script>
+            $(function (){
+                $('.form-group input').each(function() {
+                    $(this).addClass('form-control');
+                });
+                $('.form-group textarea').each(function() {
+                    $(this).addClass('form-control');
+                });
+                $('.form-group checkbox').each(function() {
+                    $(this).addClass('form-control');
+                });
+                $('.form-group select').each(function() {
+                    $(this).addClass('form-control');
+                });
+            });
+        </script>
+        {% block scripts %}
+        {% endblock %}
+
+    </body>
 </html>
+
+
+
