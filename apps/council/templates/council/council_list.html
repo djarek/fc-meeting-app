@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb_list %}
+<ol class="breadcrumb">
+    <li class="active">Rady Wydziału</li>
+</ol>
+{% endblock %}
+
+{% block content %}
+    <div class="col-xs-12 col-md-12">
+        <h1>Rady Wydziału Elektroniki</h1>
+
+        <a class="btn btn-primary" href="{% url 'add_council' %}">
+            <i class="fa fa-user-plus"></i> Dodaj nową radę
+        </a>
+
+        <br><br>
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Rok rozpoczęcia</th>
+                    <th>Rok zakończenia</th>
+                    <th>Dziekan</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in object_list %}
+                    <tr>
+                        <td>{{ obj.begin_year }}</td>
+                        <td>{{ obj.end_year }}</td>
+                        <td>{{ obj.dean }}</td>
+                        <td>
+                            <a href="{% url 'council_detail' obj.pk %}">
+                                <button class="btn btn-default btn-info">Zobacz</button>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

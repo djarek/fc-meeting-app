@@ -1,32 +1,100 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
 {% load i18n %}
+{% load staticfiles %}
+<html lang="en">
+<head>
+    <title>
+        {% block title %}Rada Wydział Elektroniki{% endblock %}
+    </title>
 
-{% block content %}
-    <form method="post" role="form" class="form-horizontal">
-        {% for field in form.visible_fields %}
-            <div class="form-group{% if field.errors %} has-error{% endif %}">
-                <label for="div_{{ field.html_name }}" class="col-sm-2 control-label">{{ field.label_tag }}</label>
-                <div id="div_{{ field.html_name }}" class="col-sm-3">
-                    {{ field }}
-                </div>
-                <div class="text-muted pull-right">
-                    <small>{{ field.help_text }}</small>
-                </div>
-                <div class="help-block">
-                    {{ field.errors }}
-                </div>
+    <!-- META SECTION -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="shortcut icon" href="{% static 'images/logo.PNG' %}" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <!-- END META SECTION -->
+
+    <!-- CSS INCLUDE -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <!-- EOF CSS INCLUDE -->
+</head>
+<body>
+
+<!-- APP WRAPPER -->
+<div class="app app-fh">
+
+    <!-- START APP CONTAINER -->
+    <div class="app-container" style="background: url({% static 'images/glowny-c13-pwr.jpg' %})  center center no-repeat fixed;" >
+
+        <div class="app-login-box">
+            <div class="app-login-box-user"><img src="{% static 'images/logo.PNG' %}"></div>
+            <div class="app-login-box-title">
+                <div class="title">Rada Wydziału Elektroniki</div>
+                <div class="subtitle">Zaloguj się</div>
             </div>
-        {% endfor %}
-        {% for hidden in form.hidden_fields %}
-            {{ hidden }}
-        {% endfor %}
-        {% csrf_token %}
-        <div class="form-group col-sm-1">
-            <input type="submit" value="Zaloguj" class="btn btn-primary" />
-  			<input type="hidden" name="next" value="{{ next }}" />
-        </div>
-</form>
+            <div class="app-login-box-container">
+                {% if messages %}
+                    <ul class="messages">
+                        {% for message in messages %}
+                            <li style="color:#C30000" {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                <form action="{% url 'login' %}" method="post">
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="email" placeholder="Adres e-mail">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" name="password" placeholder="Hasło">
+                    </div>
+                    <div class="form-group">
 
-<p>Zapomniałeś hasła? <a href="{% url 'auth_password_reset' %}">Resetuj</a>!</p>
-<p>Niezarejestrowany? <a href="{% url 'registration_register' %}">Zarejestruj</a>!</p>
-{% endblock %}
+                        <div class="row">
+                            <div class="col-md-6 col-xs-6">
+                                <div class="app-checkbox">
+                                    <label><input type="checkbox" name="ldap_login" value="true"> Logowanie przez LDAP</label>
+                                </div>
+                            </div>
+                            {% csrf_token %}
+                            <div class="col-md-6 col-xs-6">
+                                <button type="submit" class="btn btn-success btn-block">Zaloguj</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            <div class="app-login-box-or">
+                <div class="sp"></div>
+            </div>
+            <div class="app-login-box-container">
+
+            </div>
+            <div class="app-login-box-footer">
+                &copy; RWE 2016.
+            </div>
+        </div>
+
+    </div>
+    <!-- END APP CONTAINER -->
+
+</div>
+<!-- END APP WRAPPER -->
+
+<!-- IMPORTANT SCRIPTS -->
+<script type="text/javascript" src="{% static 'js/vendor/jquery/jquery.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/vendor/jquery/jquery-ui.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/vendor/bootstrap/bootstrap.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/vendor/moment/moment.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/vendor/customscrollbar/jquery.mCustomScrollbar.min.js' %}"></script>
+<!-- END IMPORTANT SCRIPTS -->
+<!-- APP SCRIPTS -->
+<script type="text/javascript" src="{% static 'js/app.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/app_plugins.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/app_demo.js' %}"></script>
+<!-- END APP SCRIPTS -->
+
+</body>
+</html>

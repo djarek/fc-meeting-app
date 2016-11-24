@@ -1,38 +1,109 @@
 {% extends 'base.html' %}
 
-{% block content %}
-    <div class="row">
-        <h1>Rada {{ object.code }}</h1>
-        <h3><strong>Data: </strong>{{ object.date|date:'d.m.Y' }}</h3>
-        <h3><strong>Godzina: </strong>{{ object.date|time:'G:i' }}</h3>
+{% block breadcrumb_list %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'council_list' %}">Rady Wydziałów</a></li>
+        <li><a href="{% url 'council_detail' meeting.council.pk %}">{{ meeting.council }}</a></li>
+        <li class="active">{{ meeting }}</li>
+    </ol>
+{% endblock %}
 
-        <a class="btn btn-primary" href="{% url 'add_point' object.pk %}">
-            <i class="fa fa-plus"></i> Dodaj punkt
-        </a>
-        <h3>Punkty:</h3>
-        <table class="table table-bordered">
+{% block content %}
+    <div class="col-xs-12 col-md-12">
+        <h1>{{ meeting }}</h1>
+
+        <table class="table table-bordered table-striped">
             <tr>
-                <td>Opiekun</td>
-                <td>Tytuł</td>
-                <td>Tajne głosowanie</td>
-                <td>Akcje</td>
+                <td><strong>Rada</strong></td>
+                <td>{{ object.council }}</td>
             </tr>
-            {% for point in point_list %}
-                <tr>
-                    <td>{{ point.owner }}</td>
-                    <td>{{ point.title }}</td>
-                    <td>
-                        {% if point.is_secret %}Tak
-                        {% else %}Nie
-                        {% endif %}
-                    </td>
-                    <td>
-                        <a href="{% url 'point_detail' point.pk %}">
-                            <i class="fa fa-eye" aria-hidden="true" value="Szczegóły"></i>
-                        </a>
-                    </td>
-                </tr>
-            {% endfor %}
+            <tr>
+                <td><strong>Data</strong></td>
+                <td>{{ object.date|date:'d.m.Y' }}</td>
+            </tr>
+            <tr>
+                <td><strong>Miejsce spotkania</strong></td>
+                <td>{{ object.place }}</td>
+            </tr>
         </table>
+
+    <br>
+
+        <ul class="nav nav-tabs bordered" role="tablist">
+            <li role="presentation" class="active">
+                <a href="#points" aria-controls="points" role="tab" data-toggle="tab">Punkty spotkania</a>
+            </li>
+            <li role="presentation">
+                <a href="#invited" aria-controls="invited" role="tab" data-toggle="tab">Zaproszeni</a>
+            </li>
+        </ul>
+
+        <div class="tab-content tab-content-bordered">
+            <div role="tabpanel" class="tab-pane active" id="points">
+                <h1>Punkty spotkania</h1>
+
+                <a class="btn btn-primary" href="{% url 'add_point' meeting.pk %}">
+                    <i class="fa fa-plus"></i> Dodaj punkt
+                </a>
+
+                <br><br>
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Opiekun</th>
+                        <th>Tytuł</th>
+                        <th>Tajne głosowanie</th>
+                        <th>Akcje</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for point in point_list %}
+                        <tr>
+                            <td>{{ point.owner }}</td>
+                            <td>{{ point.title }}</td>
+                            <td>
+                                {% if point.is_secret %}Tak
+                                {% else %}Nie
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'point_detail' point.pk %}">
+                                    <button class="btn btn-default btn-info">Zobacz</button>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="invited">
+                <h1>Zaproszeni na spotkanie Rady Wydziału</h1>
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Tytuł/stopnień naukowy</th>
+                        <th>Imię</th>
+                        <th>Nazwisko</th>
+                        <th>Adres e-mail</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for o in os %}
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+
     </div>
 {% endblock %}

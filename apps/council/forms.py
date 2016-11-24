@@ -7,37 +7,30 @@ from bootstrap3_datetime.widgets import DateTimePicker
 
 from functools import partial
 
-from .models import Meeting, Point
+import apps.council.models as council_models
+
+
+class CouncilForm(forms.ModelForm):
+    class Meta:
+        model = council_models.FacultyCouncil
+        fields = '__all__'
 
 
 class MeetingForm(forms.ModelForm):
     class Meta:
-        model = Meeting
-        widgets = {
-            'date': DateTimePicker(options={'id': 'date_picker',
-                                            "format": "DD-MM-YYYY HH:mm",
-                                            'sideBySide': True}),
-        }
-
-        exclude = ['code',]
-
-    def clean(self):
-        cd = self.cleaned_data
-
-        print cd
-        print self.errors
-        if self.data['date']:
-            cd['date'] = datetime.strptime(self.data['date'], '%d-%m-%Y %H:%M')
-            print datetime.strptime(self.data['date'], '%d-%m-%Y %H:%M'), type(
-                datetime.strptime(self.data['date'], '%d-%m-%Y %H:%M'))
-            del self.errors['date']
-        else:
-            self.errors['date'] = u'Pole nie może być puste'
-
-        return cd
+        model = council_models.Meeting
+        exclude = ['council', 'code']
 
 
 class PointForm(forms.ModelForm):
     class Meta:
-        model = Point
-        exclude = ('meeting',)
+        model = council_models.Point
+        exclude = ('meeting', 'owner')
+
+
+class PersonForm(forms.ModelForm):
+    class Meta:
+        model = council_models.Person
+        fields = ('scientific_title', 'first_name', 'last_name',
+                  'email', 'is_creator', 'is_member')
+        exclude = ('lookup', 'is_active')
