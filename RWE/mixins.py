@@ -1,9 +1,12 @@
 # -*- encoding: utf-8 -*-
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 
 
 class LoginRequiredMixin(object):
-    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
+        if request.user.is_authenticated():
+            return super(LoginRequiredMixin, self).dispatch(request,
+                                                            *args, **kwargs)
+        else:
+            return HttpResponseRedirect(reverse('login'))

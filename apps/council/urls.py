@@ -3,13 +3,30 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^$', views.IndexView.as_view(), name='index'),
-    url(r'^meetinglist$', views.MeetingListView.as_view(), name='meeting_list'),
-    url(r'^addmeeting$', views.MeetingCreateView.as_view(), name='add_meeting'),
-    url(r'^meetingdetail/(?P<pk>\d+)/$', views.MeetingDetailView.as_view(),
-        name='meeting_detail'),
-    url(r'^meetingdetail/(?P<pk>\d+)/addpoint$', views.PointCreateView.as_view(),
-        name='add_point'),
-    url(r'^pointdetail/(?P<pk>\d+)/$', views.PointDetailView.as_view(),
-        name='point_detail'),
+    url(r'^councillist/',
+        views.CouncilListView.as_view(), name='council_list'),
+
+    url(r'^addcouncil$',
+        views.CouncilCreateView.as_view(), name='add_council'),
+
+    url(r'(?P<pk>\d+)/$',
+        views.CouncilDetailView.as_view(), name='council_detail'),
+
+    url(r'^(?P<pk>\d+)/addmeeting$',
+        views.MeetingCreateView.as_view(), name='add_meeting'),
+
+    url(r'^meeting/(?P<pk>\d+)$',
+        views.MeetingDetailView.as_view(), name='meeting_detail'),
+
+    url(r'^meeting/(?P<pk>\d+)/addpoint$',
+        views.PointCreateView.as_view(), name='add_point'),
+
+    url(r'^pointdetail/(?P<pk>\d+)$',
+        views.PointDetailView.as_view(), name='point_detail'),
+
+    url(r'^personlist/addperson$',
+        views.PersonCreateForm.as_view(), name='add_person'),
+
+    url(r'^personlist/$',
+        views.PersonListView.as_view(), name='person_list'),
 ]

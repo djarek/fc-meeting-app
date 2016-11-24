@@ -1,45 +1,38 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
-{% load static %}
 
-{% block header %}
-    {{ form.media }}
-    {{ block.super }}
+{% block breadcrumb_list %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
+        <li><a href="{% url 'council_detail' council.pk %}">{{ council }}</a></li>
+        <li class="active">Dodaj spotkanie</li>
+    </ol>
 {% endblock %}
 
 {% block content %}
-    <div class="row">
-    <div class='col-sm-2'>
-        <form method="post" role="form">
-            {% for field in form.visible_fields %}
-                <div id="div_{{ field.html_name }}"
-                     class="form-group{% if field.errors %} has-error{% endif %}">
-                    {{ field.label_tag }}
+    <div class="col-xs-12 col-md-12">
+    <h1>Utwórz spotkanie</h1>
+    <form method="post" role="form" class="form-horizontal">
+        {% for field in form.visible_fields %}
+            <div class="form-group{% if field.errors %} has-error{% endif %}">
+                <label for="div_{{ field.html_name }}" class="col-sm-2 control-label">{{ field.label_tag }}</label>
+                <div id="div_{{ field.html_name }}" class="col-sm-3">
                     {{ field }}
-                    <div class="text-muted pull-right">
-                        <small>{{ field.help_text }}</small>
-                    </div>
-                    <div class="help-block">
-                        {{ field.errors }}
-                    </div>
                 </div>
-            {% endfor %}
-            {% for hidden in form.hidden_fields %}
-                {{ hidden }}
-            {% endfor %}
-            {% csrf_token %}
-            <div class="form-group">
-                <input type="submit" value="Dodaj" class="btn btn-primary" />
+                <div class="text-muted pull-right">
+                    <small>{{ field.help_text }}</small>
+                </div>
+                <div class="help-block">
+                    {{ field.errors }}
+                </div>
             </div>
-        </form>
+        {% endfor %}
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+        {% csrf_token %}
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Dodaj</button>
+        </div>
+    </form>
     </div>
-    </div>
-{% endblock %}
-{% block scripts %}
-
-    <script>
-        $(document).ready(function() {
-            console.log('asd');
-        });
-    </script>
 {% endblock %}
