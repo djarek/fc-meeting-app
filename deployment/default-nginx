@@ -1,0 +1,5 @@
+server {
+       listen         80;
+       server_name    156.17.42.114;
+       return         301 https://$server_name$request_uri;
+}
