@@ -27,7 +27,7 @@
             <tbody>
             {% for obj in object_list %}
                 <tr>
-                    <td>{{ obj.scientific_title }}</td>
+                    <td>{{ obj.get_title_verbose}}</td>
                     <td>{{ obj.first_name }}</td>
                     <td>{{ obj.last_name }}</td>
                 </tr>

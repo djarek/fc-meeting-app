@@ -34,3 +34,4 @@ class PersonForm(forms.ModelForm):
         fields = ('scientific_title', 'first_name', 'last_name',
                   'email', 'is_creator', 'is_member')
         exclude = ('lookup', 'is_active')
+

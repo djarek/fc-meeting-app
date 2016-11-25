@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.6/select2-bootstrap.min.css"/>
+<link rel="stylesheet" href="{% static 'css/select2.min.css' %}"/>
+
+{{% block breadcrumb_list %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
+        <li><a href="{% url 'council_detail' council.pk %}">{{ council }}</a></li>
+        <li class="active">Dodaj członków Rady</li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    <div class="col-xs-12 col-md-12">
+        <h1>Dodaj członków Rady</h1>
+        <form method="post" role="form" class="form-horizontal">
+            <select multiple id="users_select" style="width:300px">
+                {% for p in persons %}
+                    <option value="{{ p.pk }}">{{ p.lookup }}</option>
+                {% endfor %}
+            </select>
+            {% csrf_token %}
+            <input type="hidden" name="council_pk" value="{{ council.pk }}">
+            <input id="persons" type="hidden" name="persons">
+            <br><br>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Dodaj</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    <script>
+        $(function() {
+            $('#users_select').select2();
+            $('#users_select').change(function () {
+                var options = $(this).select2().val().toString();
+                $('#persons').val(options);
+                console.log(options);
+            });
+        });
+    </script>
+{% endblock %}

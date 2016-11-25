@@ -19,21 +19,26 @@
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
+                    <th>Kadencja</th>
+                    <th>Dziekan</th>
                     <th>Rok rozpoczęcia</th>
                     <th>Rok zakończenia</th>
-                    <th>Dziekan</th>
                     <th>Akcje</th>
                 </tr>
             </thead>
             <tbody>
                 {% for obj in object_list %}
                     <tr>
+                        <td>{{ obj.term }}</td>
+                        <td>{{ obj.dean }}</td>
                         <td>{{ obj.begin_year }}</td>
                         <td>{{ obj.end_year }}</td>
-                        <td>{{ obj.dean }}</td>
                         <td>
                             <a href="{% url 'council_detail' obj.pk %}">
                                 <button class="btn btn-default btn-info">Zobacz</button>
+                            </a>
+                            <a href="{% url 'council_update' obj.pk %}">
+                                <button class="btn btn-default btn-warning">Edytuj</button>
                             </a>
                         </td>
                     </tr>

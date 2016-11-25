@@ -66,6 +66,9 @@
                                 <a href="{% url 'meeting_detail' meeting.pk %}">
                                     <button class="btn btn-default btn-info">Zobacz</button>
                                 </a>
+                                <a href="{% url 'meeting_update' meeting.pk %}">
+                                    <button class="btn btn-default btn-warning">Edytuj</button>
+                                </a>
                             </td>
                         </tr>
                     {% endfor %}
@@ -74,7 +77,10 @@
             </div>
             <div role="tabpanel" class="tab-pane" id="members">
                 <h1>Członkowie Rady Wydziału</h1>
-
+                <a class="btn btn-primary" href="{% url 'add_council_members' object.pk %}">
+                    <i class="fa fa-plus"></i> Dodaj członków
+                </a>
+                <br><br>
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
@@ -85,12 +91,12 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for o in os %}
+                    {% for member in members_list %}
                         <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td>{{ member.person.get_title_verbose }}</td>
+                            <td>{{ member.person.first_name }}</td>
+                            <td>{{ member.person.last_name }}</td>
+                            <td>{{ member.person.email }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

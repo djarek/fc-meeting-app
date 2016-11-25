@@ -34,6 +34,9 @@
                 <a href="#points" aria-controls="points" role="tab" data-toggle="tab">Punkty spotkania</a>
             </li>
             <li role="presentation">
+                <a href="#attachments" aria-controls="attachments" role="tab" data-toggle="tab">Załączniki</a>
+            </li>
+            <li role="presentation">
                 <a href="#invited" aria-controls="invited" role="tab" data-toggle="tab">Zaproszeni</a>
             </li>
         </ul>
@@ -51,8 +54,9 @@
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
-                        <th>Opiekun</th>
                         <th>Tytuł</th>
+                        <th>Opis</th>
+                        <th>Rodzaj sprawy</th>
                         <th>Tajne głosowanie</th>
                         <th>Akcje</th>
                     </tr>
@@ -60,8 +64,9 @@
                     <tbody>
                     {% for point in point_list %}
                         <tr>
-                            <td>{{ point.owner }}</td>
                             <td>{{ point.title }}</td>
+                            <td>{{ point.description }}</td>
+                            <td>{{ point.category }}</td>
                             <td>
                                 {% if point.is_secret %}Tak
                                 {% else %}Nie
@@ -70,6 +75,35 @@
                             <td>
                                 <a href="{% url 'point_detail' point.pk %}">
                                     <button class="btn btn-default btn-info">Zobacz</button>
+                                </a>
+                                <a href="{% url 'point_update' point.pk %}">
+                                    <button class="btn btn-default btn-warning">Edytuj</button>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="attachments">
+                <h1>Załączniki</h1>
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Nazwa pliku</th>
+                        <th>Opis</th>
+                        <th>Akcje</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for att in attachment_list %}
+                        <tr>
+                            <td>{{ att.file.name }}</td>
+                            <td>{{ att.description }}</td>
+                            <td>
+                                <a href="#">
+                                    <button class="btn btn-default btn-success">Pobierz</button>
                                 </a>
                             </td>
                         </tr>
@@ -90,12 +124,12 @@
                     </tr>
                     </thead>
                     <tbody>
-                    {% for o in os %}
+                    {% for invited in invited_list %}
                         <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td>{{ invited.person.get_title_verbose }}</td>
+                            <td>{{ invited.person.first_name }}</td>
+                            <td>{{ invited.person.last_name }}</td>
+                            <td>{{ invited.person.email }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

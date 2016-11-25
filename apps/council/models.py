@@ -63,6 +63,12 @@ class Person(models.Model):
             self.lookup = u'{} {}'.format(self.first_name, self.last_name)
         super(Person, self).save(*args, **kwargs)
 
+    def get_title_verbose(self):
+        titles = dict(TITLES_CHOICES)
+        if self.scientific_title in titles.keys():
+            return titles[self.scientific_title]
+        return u''
+
     def __unicode__(self):
         return u'{}'.format(self.lookup)
 
