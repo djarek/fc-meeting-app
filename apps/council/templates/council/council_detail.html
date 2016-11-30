@@ -18,11 +18,11 @@
             </tr>
             <tr>
                 <td><strong>Początek kadencji</strong></td>
-                <td>{{ object.begin_year }}</td>
+                <td>{{ object.begin_date|date:'Y' }}</td>
             </tr>
             <tr>
                 <td><strong>Koniec kadencji</strong></td>
-                <td>{{ object.end_year }}</td>
+                <td>{{ object.end_date|date:'Y' }}</td>
             </tr>
             <tr>
                 <td><strong>Dziekan</strong></td>
@@ -69,6 +69,7 @@
                                 <a href="{% url 'meeting_update' meeting.pk %}">
                                     <button class="btn btn-default btn-warning">Edytuj</button>
                                 </a>
+                                <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'meeting_delete' meeting.pk %}">Usuń</button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -88,6 +89,7 @@
                         <th>Imię</th>
                         <th>Nazwisko</th>
                         <th>Adres e-mail</th>
+                        <th>Akcje</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -97,13 +99,30 @@
                             <td>{{ member.person.first_name }}</td>
                             <td>{{ member.person.last_name }}</td>
                             <td>{{ member.person.email }}</td>
+                            <td>
+                                <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'delete_council_member' member.pk %}">Usuń</button>
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-
-
     </div>
+
+    {% include 'council/delete_modal.html' %}
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(function () {
+            $('.delete_btn').click(function (event) {
+                event.preventDefault();
+                var del_url = $(this).attr('del_url');
+                $('#delete_link').attr('href', del_url);
+                $('#modal-button').modal('show');
+            });
+        });
+    </script>
 {% endblock %}

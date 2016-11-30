@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import os
+from datetime import datetime
 from django.db import models
 from django.conf import settings
 
@@ -84,22 +85,22 @@ class FacultyCouncil(models.Model):
     term = models.PositiveIntegerField(
         unique=True,
         verbose_name=u'Kadencja')
-    begin_year = models.PositiveIntegerField(
-        verbose_name=u'Rok rozpoczęcia')
-    end_year = models.PositiveIntegerField(
-        verbose_name=u'Rok zakończenia')
+    begin_date = models.DateField(
+        verbose_name=u'Data rozpoczęcia')
+    end_date = models.DateField(
+        verbose_name=u'Data zakończenia')
     dean = models.CharField(
         max_length=100, verbose_name=u'Dziekan')
 
     def __unicode__(self):
-        return u'Rada Wydziału {} {}-{}'.format(self.term,
-                                                self.begin_year,
-                                                self.end_year)
+        return u'Rada Wydziału {} {}-{}'.format(
+            self.term, self.begin_date.isocalendar()[0],
+            self.end_date.isocalendar()[0])
 
 
 class FacultyCouncilMember(models.Model):
     person = models.ForeignKey('Person', verbose_name=u'Osoba')
-    council = models.ForeignKey('FacultyCouncil',
+    council = models.ForeignKey('FacultyCouncil', null=True,
                                 verbose_name=u'Rada wydziału')
 
     def __unicode__(self):
@@ -107,23 +108,29 @@ class FacultyCouncilMember(models.Model):
 
 
 class Meeting(models.Model):
+    number = models.PositiveIntegerField(
+        verbose_name=u'Numer spotkania w roku')
     council = models.ForeignKey(
         'FacultyCouncil',
         verbose_name=u'Rada Wydziału')
-    date = models.DateField(
-        verbose_name=u'Data spotkania')
+    date = models.DateTimeField(
+        verbose_name=u'Data i godzina spotkania')
     code = models.CharField(
         blank=True,
-        max_length=8,
+        max_length=9,
         verbose_name=u'Kod spotkania')
     place = models.CharField(
-        blank=True,
         max_length=255,
         verbose_name=u'Miejsce spotkania')
 
     def save(self, *args, **kwargs):
-        self.code = u'{}/{}'.format(self.date.isocalendar()[0],
-                                    self.date.isocalendar()[1])
+        year = self.date.isocalendar()[0]
+        num = Meeting.objects.filter(council=self.council,
+                                     date__gte=datetime(year, 1, 1),
+                                     date__lte=datetime(year+1, 1, 1)).count()
+        self.number = num + 1
+        self.code = u'{}/{}'.format(self.number,
+                                    year)
         super(Meeting, self).save(*args, **kwargs)
 
     def __unicode__(self):
@@ -134,7 +141,9 @@ class Invited(models.Model):
     person = models.ForeignKey('Person', verbose_name=u'Osoba')
     meeting = models.ForeignKey('Meeting',
                                 verbose_name=u'Spotkanie Rady Wydziału')
-    group = models.ForeignKey('Group', verbose_name=u'Grupa')
+    group = models.ForeignKey('Group',
+                              verbose_name=u'Grupa',
+                              null=True)
     is_present = models.BooleanField(default=False, verbose_name=u'Obecny')
 
     def __unicode__(self):
@@ -151,6 +160,8 @@ class Access(models.Model):
 
 
 class Point(models.Model):
+    number = models.PositiveIntegerField(
+        verbose_name=u'Numer punktu')
     title = models.CharField(
         max_length=255,
         verbose_name=u'Tytuł')
@@ -170,10 +181,12 @@ class Point(models.Model):
         verbose_name=u'Zakwalifikowany')
 
     def __unicode__(self):
-        return u'Punkt: {}'.format(self.title)
+        return u'{}) {}'.format(self.number, self.title)
 
 
 class VoteOutcome(models.Model):
+    number = models.PositiveIntegerField(
+        verbose_name=u'Numer głosowania')
     point = models.ForeignKey(
         'Point',
         verbose_name=u'Punkt')
@@ -192,9 +205,9 @@ class VoteOutcome(models.Model):
     abstain_votes = models.PositiveIntegerField(
         blank=True, null=True,
         verbose_name=u'Głosy wstrzymania')
-    not_entitled = models.PositiveIntegerField(
+    all_votes = models.PositiveIntegerField(
         blank=True, null=True,
-        verbose_name=u'Niepodpisane')
+        verbose_name=u'Wszystkie głosy')
     is_public = models.BooleanField(
         default=True,
         verbose_name=u'Głosowanie publiczne')

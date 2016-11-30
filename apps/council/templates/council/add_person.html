@@ -12,7 +12,9 @@
         <form method="post" role="form" class="form-horizontal">
             {% for field in form.visible_fields %}
                 <div class="form-group{% if field.errors %} has-error{% endif %}">
-                    <label for="div_{{ field.html_name }}" class="col-sm-2 control-label">{{ field.label_tag }}</label>
+                    <label for="div_{{ field.html_name }}" class="col-sm-2 control-label">
+                        {{ field.label_tag }}{% if field.field.required %} *{% endif %}
+                    </label>
                     <div id="div_{{ field.html_name }}" class="col-sm-3">
                         {{ field }}
                     </div>
@@ -48,7 +50,6 @@
                 for(var i = 0; i < polish_letters.length; i++) {
                     var regex = new RegExp(polish_letters[i], "g");
                     email = email.replace(regex, latin_letters[i]);
-                    console.log(email);
                 }
                 $('#id_email').val(email);
             }

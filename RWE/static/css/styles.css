@@ -28759,11 +28759,11 @@ input[type="file"] {
 }
 .icons-preview {
   list-style: none;
-  padding: 0px;
+  padding-top:0px;
   margin: 0px;
   display: block;
   width: 100%;
-  text-align: center;
+  text-align: right;
 }
 .icons-preview li {
   float: none;

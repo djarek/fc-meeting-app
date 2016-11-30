@@ -1,17 +1,17 @@
 {% extends 'base.html' %}
 
-
 {% block breadcrumb_list %}
     <ol class="breadcrumb">
-        <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
-        <li><a href="{% url 'council_detail' council.pk %}">{{ council }}</a></li>
-        <li class="active">Dodaj członków Rady</li>
+        <li><a href="{% url 'council_list' %}">Rady Wydziałów</a></li>
+        <li><a href="{% url 'council_detail' meeting.council.pk %}">{{ meeting.council }}</a></li>
+        <li><a href="{% url 'meeting_detail' meeting.pk %}">{{ meeting }}</a></li>
+        <li class="active">Dodaj do zaproszonych</li>
     </ol>
 {% endblock %}
 
 {% block content %}
     <div class="col-xs-12 col-md-12">
-        <h1>Dodaj członków Rady</h1>
+        <h1>Dodaj do zaproszonych</h1>
         <form method="post" role="form" class="form-horizontal">
             <select multiple id="users_select" style="width:300px">
                 {% for p in persons %}
@@ -19,7 +19,7 @@
                 {% endfor %}
             </select>
             {% csrf_token %}
-            <input type="hidden" name="council_pk" value="{{ council.pk }}">
+            <input type="hidden" name="meeting_pk" value="{{ meeting.pk }}">
             <input id="persons" type="hidden" name="persons">
             <br><br>
             <div class="form-group">

@@ -1,13 +1,9 @@
 # -*- encoding: utf-8 -*-
-from datetime import datetime
-
-from django.shortcuts import render, redirect
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.generic import View, TemplateView, CreateView, ListView,\
     DetailView, UpdateView
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden
 
 from RWE.mixins import LoginRequiredMixin
 import apps.council.models as council_models
@@ -49,6 +45,28 @@ class CouncilUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('council_detail', args=(self.object.pk,))
 
 
+class CouncilDelete(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        c_pk = kwargs['pk']
+        council = council_models.FacultyCouncil.objects.get(pk=c_pk)
+        meetings = council_models.Meeting.objects.filter(council=council)
+        for meeting in meetings:
+            points = council_models.Point.objects.filter(meeting=meeting)
+            for point in points:
+                council_models.ResolutionPoint.objects.filter(
+                    point=point).delete()
+                council_models.Attachment.objects.filter(point=point).delete()
+                council_models.VoteOutcome.objects.filter(point=point).delete()
+                council_models.Access.objects.filter(point=point).delete()
+                point.delete()
+            council_models.Attachment.objects.filter(meeting=meeting).delete()
+            meeting.delete()
+        council_models.FacultyCouncilMember.objects.filter(
+            council=council).delete()
+        council.delete()
+        return redirect(reverse_lazy('council_list'))
+
+
 class CouncilMemberCreateView(LoginRequiredMixin, TemplateView):
     template_name = 'council/add_council_members.html'
 
@@ -72,14 +90,24 @@ class CouncilMemberCreateView(LoginRequiredMixin, TemplateView):
         return redirect(reverse_lazy('council_detail', args=(council_pk,)))
 
 
+class CouncilMemberDelete(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        member = council_models.FacultyCouncilMember.objects.get(
+            pk=kwargs['m_pk'])
+        council_pk = member.council.pk
+        member.delete()
+        return redirect(reverse_lazy('council_detail', args=(council_pk,)))
+
+
 class MeetingCreateView(LoginRequiredMixin, CreateView):
     form_class = council_forms.MeetingForm
     template_name = 'council/add_meeting.html'
 
     def form_valid(self, form):
         meeting = form.save(commit=False)
-        meeting.council = council_models.FacultyCouncil.objects.get(
+        council = council_models.FacultyCouncil.objects.get(
             pk=self.kwargs['pk'])
+        meeting.council = council
         return super(MeetingCreateView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -112,7 +140,7 @@ class MeetingUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'council/add_meeting.html'
 
     def form_valid(self, form):
-        meeting = form.save(commit=False)
+        form.save(commit=False)
         return super(MeetingUpdateView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -122,6 +150,24 @@ class MeetingUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse_lazy('meeting_detail', args=(self.object.pk,))
+
+
+class MeetingDelete(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        meeting = council_models.Meeting.objects.get(pk=kwargs['pk'])
+        council_pk = meeting.council.pk
+        points = council_models.Point.objects.filter(meeting=meeting)
+        for point in points:
+            council_models.ResolutionPoint.objects.filter(
+                point=point).delete()
+            council_models.Attachment.objects.filter(point=point).delete()
+            council_models.VoteOutcome.objects.filter(point=point).delete()
+            council_models.Access.objects.filter(point=point).delete()
+            point.delete()
+        council_models.Invited.objects.filter(meeting=meeting).delete()
+        council_models.Attachment.objects.filter(meeting=meeting).delete()
+        meeting.delete()
+        return redirect(reverse_lazy('council_detail', args=(council_pk,)))
 
 
 class PointCreateView(LoginRequiredMixin, CreateView):
@@ -155,7 +201,7 @@ class PointUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'council/add_point.html'
 
     def form_valid(self, form):
-        point = form.save(commit=False)
+        form.save(commit=False)
         return super(PointUpdateView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -165,6 +211,18 @@ class PointUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return reverse('point_detail', args=(self.object.pk,))
+
+
+class PointDelete(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        point = council_models.Point.objects.get(pk=kwargs['pk'])
+        meeting_pk = point.meeting.pk
+        council_models.ResolutionPoint.objects.filter(point=point).delete()
+        council_models.Attachment.objects.filter(point=point).delete()
+        council_models.VoteOutcome.objects.filter(point=point).delete()
+        council_models.Access.objects.filter(point=point).delete()
+        point.delete()
+        return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
 
 
 class PersonCreateForm(LoginRequiredMixin, CreateView):
@@ -186,3 +244,40 @@ class PersonCreateForm(LoginRequiredMixin, CreateView):
 class PersonListView(LoginRequiredMixin, ListView):
     model = council_models.Person
     template_name = 'council/person_list.html'
+
+
+class InviteAllCouncilMembers(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        meeting_pk = kwargs['pk']
+        meeting = council_models.Meeting.objects.get(pk=meeting_pk)
+        members = council_models.FacultyCouncilMember.objects.filter(
+            council=meeting.council)
+        for m in members:
+            i, created = council_models.Invited.objects.get_or_create(
+                person=m.person, meeting=meeting)
+            if created:
+                i.save()
+        return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
+
+
+class InvitedCreateView(LoginRequiredMixin, TemplateView):
+    template_name = 'council/add_invited.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(InvitedCreateView, self).get_context_data(
+            **kwargs)
+        context['persons'] = council_models.Person.objects.all()
+        context['meeting'] = council_models.Meeting.objects.get(
+            pk=kwargs['pk'])
+        return context
+
+    def post(self, request, *args, **kwargs):
+        meeting_pk = request.POST.get('meeting_pk', None)
+        meeting = council_models.Meeting.objects.get(pk=meeting_pk)
+        persons = request.POST.get('persons', '').split(',')
+        if persons != ['']:
+            for per in persons:
+                council_models.Invited.objects.get_or_create(
+                    meeting=meeting,
+                    person=council_models.Person.objects.get(pk=per))
+        return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))

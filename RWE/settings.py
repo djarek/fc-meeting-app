@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.sites',
     'django.contrib.staticfiles',
+    'django_extensions',
     'bootstrap3',
     'bootstrap3_datetime',
     'RWE',
@@ -88,6 +89,14 @@ WSGI_APPLICATION = 'RWE.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(conn_max_age=600)
 }
+
+# Example sqlite3 database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': 'db',
+#     }
+# }
 
 
 # Internationalization

@@ -18,8 +18,12 @@
                 <td>{{ object.council }}</td>
             </tr>
             <tr>
-                <td><strong>Data</strong></td>
+                <td><strong>Data spotkania</strong></td>
                 <td>{{ object.date|date:'d.m.Y' }}</td>
+            </tr>
+            <tr>
+                <td><strong>Godzina spotkania</strong></td>
+                <td>{{ object.date|date:'H:i' }}</td>
             </tr>
             <tr>
                 <td><strong>Miejsce spotkania</strong></td>
@@ -54,24 +58,20 @@
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
+                        <th>Numer</th>
                         <th>Tytuł</th>
                         <th>Opis</th>
                         <th>Rodzaj sprawy</th>
-                        <th>Tajne głosowanie</th>
                         <th>Akcje</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for point in point_list %}
                         <tr>
+                            <td>{{ point.number }}</td>
                             <td>{{ point.title }}</td>
-                            <td>{{ point.description }}</td>
+                            <td>{{ point.description|truncatechars:100 }}</td>
                             <td>{{ point.category }}</td>
-                            <td>
-                                {% if point.is_secret %}Tak
-                                {% else %}Nie
-                                {% endif %}
-                            </td>
                             <td>
                                 <a href="{% url 'point_detail' point.pk %}">
                                     <button class="btn btn-default btn-info">Zobacz</button>
@@ -79,6 +79,7 @@
                                 <a href="{% url 'point_update' point.pk %}">
                                     <button class="btn btn-default btn-warning">Edytuj</button>
                                 </a>
+                                <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'point_delete' point.pk %}">Usuń</button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -114,6 +115,16 @@
             <div role="tabpanel" class="tab-pane" id="invited">
                 <h1>Zaproszeni na spotkanie Rady Wydziału</h1>
 
+                <a class="btn btn-primary" href="{% url 'invite_all_members' meeting.pk %}">
+                    <i class="fa fa-plus"></i> Dodaj wszystkich członków Rady
+                </a>
+
+                <a class="btn btn-primary" href="{% url 'add_invited' meeting.pk %}">
+                    <i class="fa fa-plus"></i> Zaproś
+                </a>
+
+                <br><br>
+
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
@@ -136,8 +147,21 @@
                 </table>
             </div>
         </div>
-
-
-
     </div>
+
+    {% include 'council/delete_modal.html' %}
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(function () {
+            $('.delete_btn').click(function (event) {
+                event.preventDefault();
+                var del_url = $(this).attr('del_url');
+                $('#delete_link').attr('href', del_url);
+                $('#modal-button').modal('show');
+            });
+        });
+    </script>
 {% endblock %}
