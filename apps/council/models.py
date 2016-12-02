@@ -18,9 +18,18 @@ TITLES_CHOICES = [
 
 
 def attachment_directory_path(instance, filename):
-    return os.path.join(
-        settings.MEDIA_ROOT, 'uploads',
-        instance._meta.app_label, str(instance.incsalary.pk), filename)
+    if instance.meeting:
+        return os.path.join(
+            settings.MEDIA_ROOT, 'uploads', instance._meta.app_label,
+            'meeting', str(instance.meeting.pk), filename)
+    elif instance.point:
+        return os.path.join(
+            settings.MEDIA_ROOT, 'uploads', instance._meta.app_label,
+            'point', str(instance.point.pk), filename)
+    elif instance.resolution:
+        return os.path.join(
+            settings.MEDIA_ROOT, 'uploads', instance._meta.app_label,
+            'resolution', str(instance.resolution.pk), filename)
 
 
 class Person(models.Model):
@@ -223,11 +232,8 @@ class VoteOutcome(models.Model):
 class Attachment(models.Model):
     point = models.ForeignKey(
         'Point',
+        null=True, blank=True,
         verbose_name=u'Punkt')
-    file = models.FileField(
-        verbose_name=u'Załączony plik',
-        upload_to=attachment_directory_path,
-        null=True, blank=True)
     description = models.TextField(
         blank=True,
         verbose_name=u'Opis załącznika')
@@ -239,10 +245,20 @@ class Attachment(models.Model):
         'Meeting',
         blank=True, null=True,
         verbose_name=u'Spotkanie')
+    file = models.FileField(
+        verbose_name=u'Załączony plik',
+        upload_to=attachment_directory_path)
 
     def __unicode__(self):
-        return u'{} {}'.format(
-            self.incsalary.title, os.path.basename(self.file.name))
+        if self.meeting:
+            return u'{} {}'.format(
+                self.meeting.code, os.path.basename(self.file.name))
+        elif self.point:
+            return u'{} {}'.format(
+                self.point.number, os.path.basename(self.file.name))
+        elif self.resolution:
+            return u'{} {}'.format(
+                self.resolution.number, os.path.basename(self.file.name))
 
 
 class ResolutionPoint(models.Model):

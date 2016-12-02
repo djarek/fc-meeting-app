@@ -4,7 +4,7 @@
     <ol class="breadcrumb">
         <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
         <li><a href="{% url 'council_detail' meeting.council.pk %}">{{ meeting.council }}</a></li>
-        <li class="active"><a href="{% url 'meeting_detail' meeting.pk %}">{{ meeting }}</a></li>
+        <li><a href="{% url 'meeting_detail' meeting.pk %}">{{ meeting }}</a></li>
         <li class="active">Dodaj punkt</li>
     </ol>
 {% endblock %}

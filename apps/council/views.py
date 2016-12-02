@@ -3,7 +3,7 @@ from django.shortcuts import redirect
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.generic import View, TemplateView, CreateView, ListView,\
     DetailView, UpdateView
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 
 from RWE.mixins import LoginRequiredMixin
 import apps.council.models as council_models
@@ -31,7 +31,7 @@ class CouncilDetailView(LoginRequiredMixin, DetailView):
         context = super(CouncilDetailView, self).get_context_data(**kwargs)
         context['meeting_list'] = council_models.Meeting.objects.filter(
             council=self.object)
-        context['members_list'] = council_models.FacultyCouncilMember.objects. \
+        context['members_list'] = council_models.FacultyCouncilMember.objects.\
             filter(council=self.object)
         return context
 
@@ -131,6 +131,8 @@ class MeetingDetailView(LoginRequiredMixin, DetailView):
             meeting=self.object)
         context['invited_list'] = council_models.Invited.objects.filter(
             meeting=self.object)
+        context['attachment_list'] = council_models.Attachment.objects.filter(
+            meeting=self.object)
         return context
 
 
@@ -193,6 +195,12 @@ class PointCreateView(LoginRequiredMixin, CreateView):
 class PointDetailView(LoginRequiredMixin, DetailView):
     model = council_models.Point
     template_name = 'council/point_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(PointDetailView, self).get_context_data(**kwargs)
+        context['attachment_list'] = council_models.Attachment.objects.filter(
+            point=self.object)
+        return context
 
 
 class PointUpdateView(LoginRequiredMixin, UpdateView):
@@ -281,3 +289,60 @@ class InvitedCreateView(LoginRequiredMixin, TemplateView):
                     meeting=meeting,
                     person=council_models.Person.objects.get(pk=per))
         return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
+
+
+class UploadMeetingAttachment(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        meeting = council_models.Meeting.objects.get(pk=kwargs['pk'])
+        try:
+            att = council_models.Attachment(
+                meeting=meeting,
+                file=request.FILES['file'])
+            att.save()
+
+            return JsonResponse({'status': 'ok'})
+        except:
+            return JsonResponse({'status': 'error'})
+
+
+class UploadPointAttachment(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        point = council_models.Point.objects.get(pk=kwargs['pk'])
+        try:
+            att = council_models.Attachment(
+                point=point,
+                file=request.FILES['file'])
+            att.save()
+
+            return JsonResponse({'status': 'ok'})
+        except:
+            return JsonResponse({'status': 'error'})
+
+
+class AttachmentUpdateView(LoginRequiredMixin, UpdateView):
+    model = council_models.Attachment
+    form_class = council_forms.AttachmentForm
+    template_name = 'council/edit_attachment.html'
+
+    def form_valid(self, form):
+        form.save(commit=False)
+        return super(AttachmentUpdateView, self).form_valid(form)
+
+    def get_success_url(self):
+        if self.object.point:
+            return reverse('point_detail', args=(self.object.point.pk,))
+        else:
+            return reverse('meeting_detail', args=(self.object.meeting.pk,))
+
+
+class AttachmentDelete(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        attachment = council_models.Attachment.objects.get(pk=kwargs['pk'])
+        if attachment.meeting:
+            url = 'meeting_detail'
+            obj_pk = attachment.meeting.pk
+        elif attachment.point:
+            url = 'point_detail'
+            obj_pk = attachment.point.pk
+        attachment.delete()
+        return redirect(reverse_lazy(url, args=(obj_pk,)))

@@ -89,6 +89,15 @@
             <div role="tabpanel" class="tab-pane" id="attachments">
                 <h1>Załączniki</h1>
 
+                <form action="{% url 'upload_meeting_attachment' meeting.pk %}" method="post" enctype="multipart/form-data" class="dropzone dropzone-tiny dz-clickable">
+                    <div class="dz-default dz-message">
+                        <div class="dropzone-preupload-title">
+                            Drop files here or click to upload
+                        </div>
+                    </div>
+                    {% csrf_token %}
+                </form>
+
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
@@ -101,11 +110,15 @@
                     {% for att in attachment_list %}
                         <tr>
                             <td>{{ att.file.name }}</td>
-                            <td>{{ att.description }}</td>
+                            <td>{{ att.description|truncatechars:100 }}</td>
                             <td>
                                 <a href="#">
-                                    <button class="btn btn-default btn-success">Pobierz</button>
+                                    <button class="btn btn-default btn-primary">Pobierz</button>
                                 </a>
+                                <a href="{% url 'attachment_update' att.pk %}">
+                                    <button class="btn btn-default btn-warning">Edytuj</button>
+                                </a>
+                                <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'attachment_delete' att.pk %}">Usuń</button>
                             </td>
                         </tr>
                     {% endfor %}

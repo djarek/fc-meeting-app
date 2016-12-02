@@ -11,8 +11,10 @@ class CouncilForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CouncilForm, self).__init__(*args, **kwargs)
         self.fields['begin_date'] = forms.DateField(
+            label=u'Data rozpoczęcia',
             input_formats=['%m/%Y'])
         self.fields['end_date'] = forms.DateField(
+            label=u'Data zakończenia',
             input_formats=['%m/%Y'])
 
 
@@ -39,3 +41,9 @@ class PersonForm(forms.ModelForm):
         fields = ('scientific_title', 'first_name', 'last_name',
                   'email', 'is_creator', 'is_member')
         exclude = ('lookup', 'is_active')
+
+
+class AttachmentForm(forms.ModelForm):
+    class Meta:
+        model = council_models.Attachment
+        fields = ['description']

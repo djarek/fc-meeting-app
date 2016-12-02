@@ -22,14 +22,16 @@
                 <th>Tytuł/stopień naukowy</th>
                 <th>Imię</th>
                 <th>Nazwisko</th>
+                <th>Adres e-mail</th>
             </tr>
             </thead>
             <tbody>
             {% for obj in object_list %}
                 <tr>
-                    <td>{{ obj.get_title_verbose}}</td>
+                    <td>{{ obj.get_title_verbose }}</td>
                     <td>{{ obj.first_name }}</td>
                     <td>{{ obj.last_name }}</td>
+                    <td>{{ obj.email }}</td>
                 </tr>
             {% endfor %}
             </tbody>

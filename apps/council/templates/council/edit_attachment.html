@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb_list %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
+        {% if object.meeting %}
+            <li><a href="{% url 'council_detail' object.meeting.council.pk %}">{{ object.meeting.council }}</a></li>
+            <li><a href="{% url 'meeting_detail' object.meeting.pk %}">{{ object.meeting }}</a></li>
+        {% elif object.point %}
+            <li><a href="{% url 'council_detail' object.point.meeting.council.pk %}">{{ object.point.meeting.council }}</a></li>
+            <li><a href="{% url 'meeting_detail' object.point.meeting.pk %}">{{ object.point.meeting }}</a></li>
+            <li><a href="{% url 'point_detail' object.point.pk %}">{{ object.point }}</a></li>
+        {% endif %}
+        <li class="active">Edytuj załącznik</li>
+    </ol>
+{% endblock %}
+
+{% block content %}
+    <div class="col-xs-12 col-md-10">
+        <form method="post" role="form" class="form-horizontal">
+            {% for field in form.visible_fields %}
+                <div class="form-group{% if field.errors %} has-error{% endif %}">
+                    <label for="div_{{ field.html_name }}" class="col-sm-2 control-label">
+                        {{ field.label_tag }}{% if field.field.required %} *{% endif %}
+                    </label>
+                    <div id="div_{{ field.html_name }}" class="col-sm-3">
+                        {{ field }}
+                    </div>
+                    <div class="text-muted pull-right">
+                        <small>{{ field.help_text }}</small>
+                    </div>
+                    <div class="help-block">
+                        {{ field.errors }}
+                    </div>
+                </div>
+            {% endfor %}
+            {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
+            {% csrf_token %}
+            <div class="form-group col-sm-1">
+                <button type="submit" class="btn btn-primary">Dodaj</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

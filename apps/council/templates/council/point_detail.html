@@ -52,81 +52,65 @@
             <li role="presentation" class="active">
                 <a href="#attachments" aria-controls="attachments" role="tab" data-toggle="tab">Załączniki</a>
             </li>
-            <li role="presentation">
-                <a href="#upload" aria-controls="upload" role="tab" data-toggle="tab">Dodaj załączniki</a>
-            </li>
         </ul>
 
         <div class="tab-content tab-content-bordered">
             <div role="tabpanel" class="tab-pane active" id="attachments">
                 <h1>Załączniki</h1>
+
+                <form action="{% url 'upload_point_attachment' object.pk %}" method="post" enctype="multipart/form-data" class="dropzone dropzone-tiny dz-clickable">
+                    <div class="dz-default dz-message">
+                        <div class="dropzone-preupload-title">
+                            Drop files here or click to upload
+                        </div>
+                    </div>
+                    {% csrf_token %}
+                </form>
+
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
-                        <th>Nazwa</th>
+                        <th>Nazwa pliku</th>
+                        <th>Opis</th>
                         <th>Akcje</th>
                     </tr>
                     </thead>
                     <tbody>
-                    {% for point in point_list %}
+                    {% for att in attachment_list %}
                         <tr>
-                            <td>{{ point.owner }}</td>
+                            <td>{{ att.file.name }}</td>
+                            <td>{{ att.description|truncatechars:100 }}</td>
                             <td>
                                 <a href="#">
-                                    <button class="btn btn-default btn-info">Pobierz</button>
+                                    <button class="btn btn-default btn-primary">Pobierz</button>
                                 </a>
+                                <a href="{% url 'attachment_update' att.pk %}">
+                                    <button class="btn btn-default btn-warning">Edytuj</button>
+                                </a>
+                                <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'attachment_delete' att.pk %}">Usuń</button>
                             </td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
             </div>
-
-            <div role="tabpanel" class="tab-pane" id="upload">
-                <h1>Dodaj załączniki</h1>
-
-                <div class="input-group">
-                    <span class="input-group-btn">
-                        <label class="btn btn-primary btn-file" for="multiple_input_group">
-                            <div class="input required"><input id="multiple_input_group" type="file" multiple></div> Browse
-                        </label>
-                    </span>
-                    <span class="file-input-label"></span>
-                </div>
-            </div>
         </div>
 
     </div>
+
+    {% include 'council/delete_modal.html' %}
+
 {% endblock %}
-{#{% block scripts %}#}
-{#    <script>#}
-{#        $(function(){#}
-{#            $('.btn-file :file').change(function() {#}
-{#                var input = $(this),#}
-{#                        numFiles = input.get(0).files ? input.get(0).files.length : 1,#}
-{#                        label = input.val().replace(/\\/g, '/').replace(/.*\//, '');#}
-{#                input.trigger('fileselect', [numFiles, label]);#}
-{#            });#}
-{#            $('.btn-file :file').on('fileselect', function(event, numFiles, label) {#}
-{#                var input_label = $(this).closest('.input-group').find('.file-input-label')#}
-{##}
-{#                var log = numFiles > 1 ? numFiles + ' files selected' : label;#}
-{#                if(numFiles === 0) {#}
-{#                    log = 'Nie wybrano plików';#}
-{#                } else if(numFiles === 1) {#}
-{#                    log = numFiles + ' wybrany plik';#}
-{#                } else if(numFiles > 1 && numFiles < 5) {#}
-{#                    log = numFiles + ' wybrane pliki';#}
-{#                } else {#}
-{#                    log = numFiles + ' wybranych plików'#}
-{#                }#}
-{##}
-{#                if(input_label.length) {#}
-{#                    input_label.text(log);#}
-{#                } else {#}
-{#                    if(log) alert(log);#}
-{#                }#}
-{#            });#}
-{#        })#}
-{#    </script>#}
-{#{% endblock %}#}
+
+{% block scripts %}
+    <script>
+        $(function () {
+            $('.delete_btn').click(function (event) {
+                event.preventDefault();
+                var del_url = $(this).attr('del_url');
+                $('#delete_link').attr('href', del_url);
+                $('#modal-button').modal('show');
+            });
+        });
+    </script>
+{% endblock %}
