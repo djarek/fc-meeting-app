@@ -52,6 +52,9 @@
             <li role="presentation" class="active">
                 <a href="#attachments" aria-controls="attachments" role="tab" data-toggle="tab">Załączniki</a>
             </li>
+            <li role="presentation">
+                <a href="#votings" aria-controls="attachments" role="tab" data-toggle="tab">Głosowania</a>
+            </li>
         </ul>
 
         <div class="tab-content tab-content-bordered">
@@ -89,6 +92,39 @@
                                 </a>
                                 <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'attachment_delete' att.pk %}">Usuń</button>
                             </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="votings">
+                <h1>Głosowania</h1>
+
+                <a class="btn btn-primary" href="{% url 'add_vote_outcome' object.pk %}">
+                    <i class="fa fa-plus"></i> Dodaj głosowanie
+                </a>
+                <a class="btn btn-warning" href="#">
+                    <i class="fa fa-plus"></i> Stwórz kartę do głosowania
+                </a>
+
+                <br><br>
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Numer głosowania</th>
+                            <th>Opis</th>
+                            <th>Głosowanie publiczne</th>
+                            <th>Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for v in vote_outcome_list %}
+                        <tr>
+                            <td>{{ v.number }}</td>
+                            <td>{{ v.description }}</td>
+                            <td>{{ v.is_public|yesno:"Tak,Nie" }}</td>
+                            <td>...</td>
                         </tr>
                     {% endfor %}
                     </tbody>

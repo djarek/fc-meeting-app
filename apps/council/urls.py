@@ -51,6 +51,9 @@ urlpatterns = [
     url(r'^point/(?P<pk>\d+)/upload$',
         views.UploadPointAttachment.as_view(), name='upload_point_attachment'),
 
+    url(r'^point/(?P<pk>\d+)/addvoting$',
+        views.VoteOutcomeCreateView.as_view(), name='add_vote_outcome'),
+
     url(r'^point/(?P<pk>\d+)$',
         views.PointDetailView.as_view(), name='point_detail'),
 

@@ -200,6 +200,8 @@ class PointDetailView(LoginRequiredMixin, DetailView):
         context = super(PointDetailView, self).get_context_data(**kwargs)
         context['attachment_list'] = council_models.Attachment.objects.filter(
             point=self.object)
+        context['vote_outcome_list'] = council_models.VoteOutcome.objects.filter(
+            point=self.object)
         return context
 
 
@@ -346,3 +348,23 @@ class AttachmentDelete(LoginRequiredMixin, View):
             obj_pk = attachment.point.pk
         attachment.delete()
         return redirect(reverse_lazy(url, args=(obj_pk,)))
+
+class VoteOutcomeCreateView(LoginRequiredMixin, CreateView):
+    form_class = council_forms.VoteOutcomeForm
+    template_name = 'council/add_vote.html'
+
+    def form_valid(self, form):
+        vote_outcome = form.save(commit=False)
+        point = council_models.Point.objects.get(
+            pk=self.kwargs['pk'])
+        vote_outcome.point = point
+        return super(VoteOutcomeCreateView, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(VoteOutcomeCreateView, self).get_context_data(**kwargs)
+        context['point'] = council_models.Point.objects.get(
+            pk=self.kwargs['pk'])
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('point_detail', args=(self.kwargs['pk'],))
