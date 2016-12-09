@@ -1,11 +1,15 @@
 # -*- encoding: utf-8 -*-
+import StringIO
+
 from django.shortcuts import redirect
+from django.http import HttpResponse
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.generic import View, TemplateView, CreateView, ListView,\
     DetailView, UpdateView
 from django.http import HttpResponseForbidden, JsonResponse
 
 from RWE.mixins import LoginRequiredMixin
+import apps.council.functions as council_functions
 import apps.council.models as council_models
 import apps.council.forms as council_forms
 
@@ -41,8 +45,13 @@ class CouncilUpdateView(LoginRequiredMixin, UpdateView):
     form_class = council_forms.CouncilForm
     template_name = 'council/add_council.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(CouncilUpdateView, self).get_context_data(**kwargs)
+        context['is_edit'] = True
+        return context
+
     def get_success_url(self):
-        return reverse_lazy('council_detail', args=(self.object.pk,))
+        return reverse_lazy('council_list')
 
 
 class CouncilDelete(LoginRequiredMixin, View):
@@ -148,10 +157,11 @@ class MeetingUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super(MeetingUpdateView, self).get_context_data(**kwargs)
         context['council'] = self.object.council
+        context['is_edit'] = True
         return context
 
     def get_success_url(self):
-        return reverse_lazy('meeting_detail', args=(self.object.pk,))
+        return reverse_lazy('council_detail', args=(self.object.council.pk,))
 
 
 class MeetingDelete(LoginRequiredMixin, View):
@@ -200,6 +210,8 @@ class PointDetailView(LoginRequiredMixin, DetailView):
         context = super(PointDetailView, self).get_context_data(**kwargs)
         context['attachment_list'] = council_models.Attachment.objects.filter(
             point=self.object)
+        context['vote_outcome_list'] = council_models.VoteOutcome.objects.\
+            filter(point=self.object)
         return context
 
 
@@ -215,10 +227,11 @@ class PointUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super(PointUpdateView, self).get_context_data(**kwargs)
         context['meeting'] = self.object.meeting
+        context['is_edit'] = True
         return context
 
     def get_success_url(self):
-        return reverse('point_detail', args=(self.object.pk,))
+        return reverse('meeting_detail', args=(self.object.meeting.pk,))
 
 
 class PointDelete(LoginRequiredMixin, View):
@@ -328,6 +341,11 @@ class AttachmentUpdateView(LoginRequiredMixin, UpdateView):
         form.save(commit=False)
         return super(AttachmentUpdateView, self).form_valid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super(AttachmentUpdateView, self).get_context_data(**kwargs)
+        context['is_edit'] = True
+        return context
+
     def get_success_url(self):
         if self.object.point:
             return reverse('point_detail', args=(self.object.point.pk,))
@@ -346,3 +364,88 @@ class AttachmentDelete(LoginRequiredMixin, View):
             obj_pk = attachment.point.pk
         attachment.delete()
         return redirect(reverse_lazy(url, args=(obj_pk,)))
+
+
+class VoteOutcomeCreateView(LoginRequiredMixin, CreateView):
+    form_class = council_forms.VoteOutcomeForm
+    template_name = 'council/add_vote.html'
+
+    def form_valid(self, form):
+        vote_outcome = form.save(commit=False)
+        point = council_models.Point.objects.get(
+            pk=self.kwargs['pk'])
+        vote_outcome.point = point
+        return super(VoteOutcomeCreateView, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(VoteOutcomeCreateView, self).get_context_data(**kwargs)
+        context['point'] = council_models.Point.objects.get(
+            pk=self.kwargs['pk'])
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('point_detail', args=(self.kwargs['pk'],))
+
+
+class VoteOutcomeUpdateview(LoginRequiredMixin, UpdateView):
+    model = council_models.VoteOutcome
+    form_class = council_forms.VoteOutcomeForm
+    template_name = 'council/add_vote.html'
+
+    def form_valid(self, form):
+        vote_outcome = form.save(commit=False)
+        return super(VoteOutcomeUpdateview, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super(VoteOutcomeUpdateview, self).get_context_data(**kwargs)
+        context['point'] = self.object.point
+        context['is_edit'] = True
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('point_detail', args=(self.object.point.pk,))
+
+
+class VoteOutcomeDelete(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        vote = council_models.VoteOutcome.objects.get(pk=kwargs['pk'])
+        point_pk = vote.point.pk
+        vote.delete()
+        return redirect(reverse_lazy('point_detail', args=(point_pk,)))
+
+
+class GetAttendanceList(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        meeting = council_models.Meeting.objects.get(pk=kwargs['pk'])
+        document = council_functions.generate_attendance_list(meeting=meeting)
+        f = StringIO.StringIO()
+        document.save(f)
+        length = f.tell()
+        f.seek(0)
+        response = HttpResponse(
+            f.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.' +
+                         'wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename=example.docx'
+        response['Content-Length'] = length
+        return response
+
+
+class GetInvitationLetter(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        meeting = council_models.Meeting.objects.get(pk=kwargs['pk'])
+        document = council_functions.generate_invitation_letter(
+            meeting=meeting)
+        f = StringIO.StringIO()
+        document.save(f)
+        length = f.tell()
+        f.seek(0)
+        response = HttpResponse(
+            f.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.' +
+                         'wordprocessingml.document'
+        )
+        response['Content-Disposition'] = 'attachment; filename=example.docx'
+        response['Content-Length'] = length
+        return response

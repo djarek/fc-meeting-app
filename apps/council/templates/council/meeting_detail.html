@@ -53,6 +53,10 @@
                     <i class="fa fa-plus"></i> Dodaj punkt
                 </a>
 
+                <a class="btn btn-warning" href="{% url 'invitation_letter' meeting.pk %}">
+                    <i class="fa fa-envelope"></i> Pobierz zaproszenie
+                </a>
+
                 <br><br>
 
                 <table class="table table-bordered table-striped">
@@ -136,12 +140,16 @@
                     <i class="fa fa-plus"></i> Zaproś
                 </a>
 
+                <a class="btn btn-warning" href="{% url 'attendance_list' meeting.pk %}">
+                    <i class="fa fa-list"></i> Pobierz listę obecności
+                </a>
+
                 <br><br>
 
                 <table class="table table-bordered table-striped">
                     <thead>
                     <tr>
-                        <th>Tytuł/stopnień naukowy</th>
+                        <th width="15%">Tytuł/stopnień naukowy</th>
                         <th>Imię</th>
                         <th>Nazwisko</th>
                         <th>Adres e-mail</th>

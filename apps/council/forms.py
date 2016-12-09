@@ -47,3 +47,9 @@ class AttachmentForm(forms.ModelForm):
     class Meta:
         model = council_models.Attachment
         fields = ['description']
+
+
+class VoteOutcomeForm(forms.ModelForm):
+    class Meta:
+        model = council_models.VoteOutcome
+        fields = ['number', 'description', 'is_public']

@@ -3,3 +3,4 @@ django-bootstrap3-datetimepicker
 django-registration-redux==1.4
 python-ldap
 django-extensions
+python-docx

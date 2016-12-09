@@ -48,8 +48,17 @@ urlpatterns = [
     url(r'^meeting/(?P<pk>\d+)/upload$',
         views.UploadMeetingAttachment.as_view(), name='upload_meeting_attachment'),
 
+    url(r'^meeting/(?P<pk>\d+)/attendancelist$',
+        views.GetAttendanceList.as_view(), name='attendance_list'),
+
+    url(r'^meeting/(?P<pk>\d+)/invitationletter$',
+        views.GetInvitationLetter.as_view(), name='invitation_letter'),
+
     url(r'^point/(?P<pk>\d+)/upload$',
         views.UploadPointAttachment.as_view(), name='upload_point_attachment'),
+
+    url(r'^point/(?P<pk>\d+)/addvoting$',
+        views.VoteOutcomeCreateView.as_view(), name='add_vote_outcome'),
 
     url(r'^point/(?P<pk>\d+)$',
         views.PointDetailView.as_view(), name='point_detail'),
@@ -71,4 +80,10 @@ urlpatterns = [
 
     url(r'^attachment/delete/(?P<pk>\d+)$',
         views.AttachmentDelete.as_view(), name='attachment_delete'),
+
+    url(r'^voteoutcome/edit/(?P<pk>\d+)$',
+        views.VoteOutcomeUpdateview.as_view(), name='vote_update'),
+
+    url(r'^voteoutcome/delete/(?P<pk>\d+)$',
+        views.VoteOutcomeDelete.as_view(), name='vote_delete'),
 ]

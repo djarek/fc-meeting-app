@@ -39,7 +39,13 @@
             {% endfor %}
             {% csrf_token %}
             <div class="form-group col-sm-1">
-                <button type="submit" class="btn btn-primary">Dodaj</button>
+                <button type="submit" class="btn btn-primary">
+                    {% if is_edit %}
+                        Zapisz zmiany
+                    {% else %}
+                        Dodaj
+                    {% endif %}
+                </button>
             </div>
         </form>
     </div>
