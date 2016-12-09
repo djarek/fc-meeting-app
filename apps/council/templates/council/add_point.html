@@ -5,7 +5,11 @@
         <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
         <li><a href="{% url 'council_detail' meeting.council.pk %}">{{ meeting.council }}</a></li>
         <li><a href="{% url 'meeting_detail' meeting.pk %}">{{ meeting }}</a></li>
-        <li class="active">Dodaj punkt</li>
+        {% if is_edit %}
+            <li class="active">Edytuj punkt</li>
+        {% else %}
+            <li class="active">Dodaj punkt</li>
+        {% endif %}
     </ol>
 {% endblock %}
 
@@ -34,7 +38,13 @@
         {% endfor %}
         {% csrf_token %}
         <div class="form-group col-sm-1">
-            <button type="submit" class="btn btn-primary">Dodaj</button>
+            <button type="submit" class="btn btn-primary">
+                {% if is_edit %}
+                    Zapisz zmiany
+                {% else %}
+                    Dodaj
+                {% endif %}
+            </button>
         </div>
     </form>
     </div>

@@ -3,7 +3,11 @@
 {% block breadcrumb_list %}
     <ol class="breadcrumb">
         <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
-        <li class="active">Dodaj radę</li>
+        {% if is_edit %}
+            <li class="active">Edytuj radę</li>
+        {% else %}
+            <li class="active">Dodaj radę</li>
+        {% endif %}
     </ol>
 {% endblock %}
 
@@ -32,7 +36,13 @@
         {% endfor %}
         {% csrf_token %}
         <div class="form-group">
-            <button type="submit" class="btn btn-primary">Dodaj</button>
+            <button type="submit" class="btn btn-primary">
+                {% if is_edit %}
+                    Zapisz zmiany
+                {% else %}
+                    Dodaj
+                {% endif %}
+            </button>
         </div>
     </form>
     </div>
@@ -46,6 +56,10 @@
                 sideBySide: true,
                 format: "MM/YYYY"
             });
+            var begin_date = '{{ object.begin_date|date:"m/Y" }}';
+            var end_date = '{{ object.end_date|date:"m/Y" }}';
+            $('#id_begin_date').val(begin_date);
+            $('#id_end_date').val(end_date);
         });
     </script>
 {% endblock %}

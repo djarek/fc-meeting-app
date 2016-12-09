@@ -124,7 +124,14 @@
                             <td>{{ v.number }}</td>
                             <td>{{ v.description }}</td>
                             <td>{{ v.is_public|yesno:"Tak,Nie" }}</td>
-                            <td>...</td>
+                            <td>
+                                <a href="{% url 'vote_update' v.pk %}">
+                                    <button class="btn btn-default btn-warning">Edytuj</button>
+                                </a>
+                                <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'vote_delete' v.pk %}">
+                                    Usuń
+                                </button>
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>

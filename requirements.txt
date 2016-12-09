@@ -8,3 +8,4 @@ django-bootstrap3-datetimepicker
 uwsgi
 python-ldap
 django-extensions
+python-docx

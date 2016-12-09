@@ -6,7 +6,11 @@
         <li><a href="{% url 'council_detail' point.meeting.council.pk %}">{{ point.meeting.council }}</a></li>
         <li><a href="{% url 'meeting_detail' point.meeting.pk %}">{{ point.meeting }}</a></li>
         <li><a href="{% url 'point_detail' point.pk %}">{{ point }}</a></li>
-        <li class="active">Dodaj głosowanie</li>
+        {% if is_edit %}
+            <li class="active">Edytuj głosowanie</li>
+        {% else %}
+            <li class="active">Dodaj głosowanie</li>
+        {% endif %}
     </ol>
 {% endblock %}
 
@@ -35,7 +39,13 @@
         {% endfor %}
         {% csrf_token %}
         <div class="form-group">
-            <button type="submit" class="btn btn-primary">Dodaj</button>
+            <button type="submit" class="btn btn-primary">
+                {% if is_edit %}
+                    Zapisz zmiany
+                {% else %}
+                    Dodaj
+                {% endif %}
+            </button>
         </div>
     </form>
     </div>
