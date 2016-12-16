@@ -1,9 +1,11 @@
 # -*- encoding: utf-8 -*-
 import StringIO
+import json
 
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse_lazy, reverse
+from django.core.mail import send_mail
 from django.views.generic import View, TemplateView, CreateView, ListView,\
     DetailView, UpdateView
 from django.http import HttpResponseForbidden, JsonResponse
@@ -196,6 +198,12 @@ class PointCreateView(LoginRequiredMixin, CreateView):
         context = super(PointCreateView, self).get_context_data(**kwargs)
         context['meeting'] = council_models.Meeting.objects.get(
             pk=self.kwargs['pk'])
+        context['categories'] = json.dumps([
+            {
+                'id': p.category,
+                'text': p.category
+            } for p in council_models.Point.objects.all()
+        ])
         return context
 
     def get_success_url(self):
@@ -449,3 +457,21 @@ class GetInvitationLetter(LoginRequiredMixin, View):
         response['Content-Disposition'] = 'attachment; filename=example.docx'
         response['Content-Length'] = length
         return response
+
+
+class SendInvitation(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        meeting = council_models.Meeting.objects.get(pk=kwargs['pk'])
+        receivers = [inv.person.email for inv in
+                     council_models.Invited.objects.filter(meeting=meeting)]
+
+        subject = u'Zaproszenie na spotkanie Rady Wydziału Elektroniki'
+        message = u'Przykładowe zaproszenie\n'
+        message += u'Spotkanie: {}'.format(meeting)
+
+        send_mail(subject=subject,
+                  message=message,
+                  from_email=u'Rada Wydziału Elektroniki',
+                  recipient_list=receivers,
+                  fail_silently=False)
+        return redirect(reverse_lazy('meeting_detail', args=(meeting.pk,)))

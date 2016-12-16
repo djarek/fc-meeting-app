@@ -17,8 +17,7 @@
     <div class="col-xs-12 col-md-10">
     <form method="post" role="form" class="form-horizontal">
         {% for field in form.visible_fields %}
-            <div
-                 class="form-group{% if field.errors %} has-error{% endif %}">
+            <div class="form-group{% if field.errors %} has-error{% endif %}">
                 <label for="div_{{ field.html_name }}" class="col-sm-2 control-label">
                     {{ field.label_tag }}{% if field.field.required %} *{% endif %}
                 </label>
@@ -48,4 +47,20 @@
         </div>
     </form>
     </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(function () {
+        $('#id_is_final_agenda').removeClass('form-control');
+        $('#id_category').replaceWith('<select id="id_category" name="category" class="form-control" multiple="multiple"></select>');
+        $('#id_category').select2({
+            tags: true,
+            tokenSeparators: [','],
+            maximumSelectionLength: 1,
+            data:  JSON.parse('{{ categories|safe }}')
+        });
+
+    });
+</script>
 {% endblock %}

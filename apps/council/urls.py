@@ -54,6 +54,9 @@ urlpatterns = [
     url(r'^meeting/(?P<pk>\d+)/invitationletter$',
         views.GetInvitationLetter.as_view(), name='invitation_letter'),
 
+    url(r'^meeting/(?P<pk>\d+)/sendinvitation',
+        views.SendInvitation.as_view(), name='send_invitation'),
+
     url(r'^point/(?P<pk>\d+)/upload$',
         views.UploadPointAttachment.as_view(), name='upload_point_attachment'),
 
