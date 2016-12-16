@@ -42,6 +42,7 @@
     $(function() {
         var polish_letters = ['ą', 'ć', 'ę', 'ł', 'ń', 'ó', 'ś', 'ż', 'ź']
         var latin_letters = ['a', 'c', 'e', 'l', 'n', 'o', 's', 'z', 'z']
+        $('#id_is_creator, #id_is_member').removeClass('form-control')
         $('#id_first_name, #id_last_name').focusout(function(){
             var fname = $('#id_first_name').val();
             var lname = $('#id_last_name').val();

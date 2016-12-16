@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/1.8/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.8/ref/settings/
 """
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 import dj_database_url
@@ -28,9 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
-
 INSTALLED_APPS = (
     'registration',
     'django.contrib.admin',
@@ -132,3 +129,10 @@ LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = '/accounts/login/'
 SITE_ID = 1
 # ----- end registration -----
+
+# E-mail settings
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'XXXXXXXXX@gmail.com'  # your account
+EMAIL_HOST_PASSWORD = 'XXXXXXXXXX'  # your password
+EMAIL_PORT = 587
