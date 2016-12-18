@@ -10,7 +10,11 @@
 {% block content %}
     <div class="col-xs-12 col-md-12">
         <h1>{{ object }}</h1>
+        <a href="{% url 'council_update' object.pk %}">
+            <button class="btn btn-default btn-warning">Edytuj</button>
+        </a>
 
+        <br><br>
         <table class="table table-bordered table-striped">
             <tr>
                 <td><strong>Kadencja</strong></td>
@@ -51,7 +55,8 @@
                     <thead>
                     <tr>
                         <th>Kod</th>
-                        <th>Data</th>
+                        <th>Data spotkania</th>
+                        <th>Godzina spotkania</th>
                         <th>Miejsce</th>
                         <th>Akcje</th>
                     </tr>
@@ -61,6 +66,7 @@
                         <tr>
                             <td>{{ meeting.code }}</td>
                             <td>{{ meeting.date|date:'d.m.Y' }}</td>
+                            <td>{{ meeting.date|date:'H:i' }}</td>
                             <td>{{ meeting.place }}</td>
                             <td>
                                 <a href="{% url 'meeting_detail' meeting.pk %}">

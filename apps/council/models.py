@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
 
 TITLES_CHOICES = [
@@ -32,6 +34,15 @@ def attachment_directory_path(instance, filename):
             'resolution', str(instance.resolution.pk), filename)
 
 
+def validate_point_number(value):
+    numbers = Point.objects.filter(number=value).first()
+    if numbers:
+        raise ValidationError(
+            u'Punkt o numerze %(value)s już istnieje!',
+            params={'value': value},
+        )
+
+
 class Person(models.Model):
     first_name = models.CharField(
         max_length=50,
@@ -47,7 +58,8 @@ class Person(models.Model):
         blank=True,
         max_length=150)
     email = models.EmailField(
-        verbose_name=u'Adres e-mail')
+        verbose_name=u'Adres e-mail',
+        unique=True)
     is_active = models.BooleanField(
         default=True,
         verbose_name=u'Aktywne konto')
@@ -118,7 +130,8 @@ class FacultyCouncilMember(models.Model):
 
 class Meeting(models.Model):
     number = models.PositiveIntegerField(
-        verbose_name=u'Numer spotkania w roku')
+        verbose_name=u'Numer spotkania w roku',
+        validators=[MinValueValidator(1), MaxValueValidator(9999)])
     council = models.ForeignKey(
         'FacultyCouncil',
         verbose_name=u'Rada Wydziału')
@@ -170,7 +183,9 @@ class Access(models.Model):
 
 class Point(models.Model):
     number = models.PositiveIntegerField(
-        verbose_name=u'Numer punktu')
+        verbose_name=u'Numer punktu',
+        validators=[MinValueValidator(1), MaxValueValidator(9999),
+                    validate_point_number])
     title = models.CharField(
         max_length=255,
         verbose_name=u'Tytuł')
@@ -195,7 +210,8 @@ class Point(models.Model):
 
 class VoteOutcome(models.Model):
     number = models.PositiveIntegerField(
-        verbose_name=u'Numer głosowania')
+        verbose_name=u'Numer głosowania',
+        validators=[MinValueValidator(1), MaxValueValidator(9999)])
     point = models.ForeignKey(
         'Point',
         verbose_name=u'Punkt')

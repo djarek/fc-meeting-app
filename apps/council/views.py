@@ -192,6 +192,8 @@ class PointCreateView(LoginRequiredMixin, CreateView):
         point = form.save(commit=False)
         meeting_pk = self.kwargs['pk']
         point.meeting = council_models.Meeting.objects.get(pk=meeting_pk)
+        point.owner = council_models.Invited.objects.get(
+            person__email__iexact=self.request.user.email)
         return super(PointCreateView, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -236,6 +238,12 @@ class PointUpdateView(LoginRequiredMixin, UpdateView):
         context = super(PointUpdateView, self).get_context_data(**kwargs)
         context['meeting'] = self.object.meeting
         context['is_edit'] = True
+        context['categories'] = json.dumps([
+           {
+               'id': p.category,
+               'text': p.category
+           } for p in council_models.Point.objects.all()
+        ])
         return context
 
     def get_success_url(self):
