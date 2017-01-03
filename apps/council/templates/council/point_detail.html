@@ -13,16 +13,20 @@
 {% block content %}
     <div class="col-xs-12 col-md-12">
         <h1>{{ object }}</h1>
+        <a href="{% url 'point_update' object.pk %}">
+            <button class="btn btn-default btn-warning">Edytuj</button>
+        </a>
 
+        <br><br>
         <table class="table table-bordered table-striped">
             <tr>
                 <td><strong>Spotkanie</strong></td><td>{{ object.meeting.code }}</td>
             </tr>
             <tr>
-                <td><strong>Opiekun</strong></td><td>{{ object.owner }}</td>
+                <td><strong>Opiekun</strong></td><td>{{ object.owner.person }}</td>
             </tr>
             <tr>
-                <td><strong>Rodzaj sprawy</strong></td><td>{{ object.point_type }}</td>
+                <td><strong>Rodzaj sprawy</strong></td><td>{{ object.category }}</td>
             </tr>
             <tr>
                 <td><strong>Tytuł</strong></td><td>{{ object.title }}</td>

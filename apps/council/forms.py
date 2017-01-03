@@ -26,6 +26,7 @@ class MeetingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(MeetingForm, self).__init__(*args, **kwargs)
         self.fields['date'] = forms.DateTimeField(
+            label=u'Data',
             input_formats=['%d.%m.%Y - %H:%M'])
 
 

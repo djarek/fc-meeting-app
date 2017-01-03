@@ -12,6 +12,11 @@
     <div class="col-xs-12 col-md-12">
         <h1>{{ meeting }}</h1>
 
+        <a href="{% url 'meeting_update' meeting.pk %}">
+            <button class="btn btn-default btn-warning">Edytuj spotkanie</button>
+        </a>
+
+        <br><br>
         <table class="table table-bordered table-striped">
             <tr>
                 <td><strong>Rada</strong></td>

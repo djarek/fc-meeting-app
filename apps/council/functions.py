@@ -93,7 +93,8 @@ def generate_invitation_letter(meeting):
     run.bold = True
 
     # Points list
-    points = council_models.Point.objects.filter(meeting=meeting)
+    points = council_models.Point.objects.filter(meeting=meeting).\
+        order_by('number')
     for point in points:
         paragraph = document.add_paragraph()
         run = paragraph.add_run(u'{}.   {}'.format(point.number, point.title))
