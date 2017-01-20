@@ -42,6 +42,9 @@ urlpatterns = [
     url(r'^meeting/(?P<pk>\d+)/addinvited$',
         views.InvitedCreateView.as_view(), name='add_invited'),
 
+    url(r'inviteddelete/(?P<pk>\d+)$',
+        views.InvitedDelete.as_view(), name='invited_delete'),
+
     url(r'^meeting/(?P<pk>\d+)/inviteallmembers$',
         views.InviteAllCouncilMembers.as_view(), name='invite_all_members'),
 

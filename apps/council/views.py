@@ -10,20 +10,42 @@ from django.views.generic import View, TemplateView, CreateView, ListView,\
     DetailView, UpdateView
 from django.http import HttpResponseForbidden, JsonResponse
 
-from RWE.mixins import LoginRequiredMixin
+from RWE.mixins import LoginRequiredMixin, CheckGroupMixin
 import apps.council.functions as council_functions
 import apps.council.models as council_models
 import apps.council.forms as council_forms
+import apps.council.dictionaries as council_dicts
 
 
 class CouncilListView(LoginRequiredMixin, ListView):
     model = council_models.FacultyCouncil
     template_name = 'council/council_list.html'
 
+    def get_queryset(self):
+        person = get_person_by_email(self.request.user.email)
+        if is_supervisor(person):
+            return council_models.FacultyCouncil.objects.all()
+        councils = council_models.FacultyCouncilMember.objects.filter(
+            person=person).values_list('council', flat=True).distinct()
+        return council_models.FacultyCouncil.objects.filter(pk__in=councils)
 
-class CouncilCreateView(LoginRequiredMixin, CreateView):
+
+class CouncilCreateView(LoginRequiredMixin, CheckGroupMixin, CreateView):
+    required_group = 'supervisor'
+
     form_class = council_forms.CouncilForm
     template_name = 'council/add_council.html'
+
+    def form_valid(self, form):
+        council = form.save()
+        members = council_models.Person.objects.filter(
+            group__in=[council_dicts.BIG_QUORUM_GROUP,
+                       council_dicts.SMALL_QUORUM_GROUP])
+        for m in members:
+            council_models.FacultyCouncilMember.objects.create(
+                person=m,
+                council=council)
+        return super(CouncilCreateView, self).form_valid(form)
 
     def get_success_url(self):
         return reverse_lazy('council_detail', args=(self.object.pk,))
@@ -33,16 +55,27 @@ class CouncilDetailView(LoginRequiredMixin, DetailView):
     model = council_models.FacultyCouncil
     template_name = 'council/council_detail.html'
 
+    def get(self, request, *args, **kwargs):
+        person = get_person_by_email(request.user.email)
+        if is_supervisor(person) or \
+                council_models.FacultyCouncilMember.objects.filter(
+                    person=person, council__pk=kwargs.get('pk')).exists():
+            return super(CouncilDetailView, self).get(request, *args, **kwargs)
+        else:
+            return HttpResponseForbidden(u'Brak dostępu')
+
     def get_context_data(self, **kwargs):
         context = super(CouncilDetailView, self).get_context_data(**kwargs)
         context['meeting_list'] = council_models.Meeting.objects.filter(
-            council=self.object)
+            council=self.object).order_by('number')
         context['members_list'] = council_models.FacultyCouncilMember.objects.\
-            filter(council=self.object)
+            filter(council=self.object).order_by('person__last_name')
         return context
 
 
-class CouncilUpdateView(LoginRequiredMixin, UpdateView):
+class CouncilUpdateView(LoginRequiredMixin, CheckGroupMixin, UpdateView):
+    required_group = 'supervisor'
+
     model = council_models.FacultyCouncil
     form_class = council_forms.CouncilForm
     template_name = 'council/add_council.html'
@@ -56,7 +89,9 @@ class CouncilUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('council_list')
 
 
-class CouncilDelete(LoginRequiredMixin, View):
+class CouncilDelete(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
     def dispatch(self, request, *args, **kwargs):
         c_pk = kwargs['pk']
         council = council_models.FacultyCouncil.objects.get(pk=c_pk)
@@ -78,13 +113,16 @@ class CouncilDelete(LoginRequiredMixin, View):
         return redirect(reverse_lazy('council_list'))
 
 
-class CouncilMemberCreateView(LoginRequiredMixin, TemplateView):
+class CouncilMemberCreateView(LoginRequiredMixin, CheckGroupMixin, TemplateView):
+    required_group = 'supervisor'
+
     template_name = 'council/add_council_members.html'
 
     def get_context_data(self, **kwargs):
         context = super(CouncilMemberCreateView, self).get_context_data(
             **kwargs)
-        context['persons'] = council_models.Person.objects.all()
+        context['persons'] = council_models.Person.objects.all().order_by(
+            'last_name')
         context['council'] = council_models.FacultyCouncil.objects.get(
             pk=kwargs['pk'])
         return context
@@ -101,7 +139,9 @@ class CouncilMemberCreateView(LoginRequiredMixin, TemplateView):
         return redirect(reverse_lazy('council_detail', args=(council_pk,)))
 
 
-class CouncilMemberDelete(LoginRequiredMixin, View):
+class CouncilMemberDelete(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
     def dispatch(self, request, *args, **kwargs):
         member = council_models.FacultyCouncilMember.objects.get(
             pk=kwargs['m_pk'])
@@ -110,7 +150,9 @@ class CouncilMemberDelete(LoginRequiredMixin, View):
         return redirect(reverse_lazy('council_detail', args=(council_pk,)))
 
 
-class MeetingCreateView(LoginRequiredMixin, CreateView):
+class MeetingCreateView(LoginRequiredMixin, CheckGroupMixin, CreateView):
+    required_group = 'supervisor'
+
     form_class = council_forms.MeetingForm
     template_name = 'council/add_meeting.html'
 
@@ -119,7 +161,14 @@ class MeetingCreateView(LoginRequiredMixin, CreateView):
         council = council_models.FacultyCouncil.objects.get(
             pk=self.kwargs['pk'])
         meeting.council = council
-        return super(MeetingCreateView, self).form_valid(form)
+        super(MeetingCreateView, self).form_valid(form)
+        members = council_models.FacultyCouncilMember.objects.filter(
+            council=council)
+        persons = [m.person for m in members]
+        for p in persons:
+            council_models.Invited.objects.create(person=p,
+                                                  meeting=self.object)
+        return redirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         context = super(MeetingCreateView, self).get_context_data(**kwargs)
@@ -135,19 +184,29 @@ class MeetingDetailView(LoginRequiredMixin, DetailView):
     model = council_models.Meeting
     template_name = 'council/meeting_detail.html'
 
+    def get(self, request, *args, **kwargs):
+        person = get_person_by_email(request.user.email)
+        if is_supervisor(person) or council_models.Invited.objects.filter(
+                person=person, meeting__pk=self.kwargs['pk']).exists():
+            return super(MeetingDetailView, self).get(request, *args, **kwargs)
+        else:
+            return HttpResponseForbidden(u'Brak dostępu')
+
     def get_context_data(self, **kwargs):
         context = super(MeetingDetailView, self).get_context_data(**kwargs)
         context['meeting'] = self.object
         context['point_list'] = council_models.Point.objects.filter(
-            meeting=self.object)
+            meeting=self.object).order_by('number')
         context['invited_list'] = council_models.Invited.objects.filter(
-            meeting=self.object)
+            meeting=self.object).order_by('person__last_name')
         context['attachment_list'] = council_models.Attachment.objects.filter(
             meeting=self.object)
         return context
 
 
-class MeetingUpdateView(LoginRequiredMixin, UpdateView):
+class MeetingUpdateView(LoginRequiredMixin, CheckGroupMixin, UpdateView):
+    required_group = 'supervisor'
+
     model = council_models.Meeting
     form_class = council_forms.MeetingForm
     template_name = 'council/add_meeting.html'
@@ -166,7 +225,9 @@ class MeetingUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy('council_detail', args=(self.object.council.pk,))
 
 
-class MeetingDelete(LoginRequiredMixin, View):
+class MeetingDelete(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
     def dispatch(self, request, *args, **kwargs):
         meeting = council_models.Meeting.objects.get(pk=kwargs['pk'])
         council_pk = meeting.council.pk
@@ -188,13 +249,28 @@ class PointCreateView(LoginRequiredMixin, CreateView):
     form_class = council_forms.PointForm
     template_name = 'council/add_point.html'
 
+    def get(self, request, *args, **kwargs):
+        person = get_person_by_email(request.user.email)
+        if is_supervisor(person) or council_models.Invited.objects.filter(
+                person=person, meeting__pk=self.kwargs['pk']).exists():
+            return super(PointCreateView, self).get(request, *args, **kwargs)
+        else:
+            return HttpResponseForbidden(u'Brak dostępu')
+
+    def get_initial(self):
+        return {'meeting_pk': self.kwargs['pk']}
+
     def form_valid(self, form):
         point = form.save(commit=False)
         meeting_pk = self.kwargs['pk']
         point.meeting = council_models.Meeting.objects.get(pk=meeting_pk)
         point.owner = council_models.Invited.objects.get(
-            person__email__iexact=self.request.user.email)
-        return super(PointCreateView, self).form_valid(form)
+            person=get_person_by_email(self.request.user.email))
+        super(PointCreateView, self).form_valid(form)
+        invited = council_models.Invited.objects.filter(meeting__pk=meeting_pk)
+        for i in invited:
+            council_models.Access.objects.create(invited=i, point=point)
+        return redirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         context = super(PointCreateView, self).get_context_data(**kwargs)
@@ -216,6 +292,15 @@ class PointDetailView(LoginRequiredMixin, DetailView):
     model = council_models.Point
     template_name = 'council/point_detail.html'
 
+    def get(self, request, *args, **kwargs):
+        person = get_person_by_email(request.user.email)
+        council_models.Access.objects.filter(point__pk=self.kwargs['pk'])
+        if is_supervisor(person) or council_models.Access.objects.filter(
+                invited__person=person, point__pk=self.kwargs['pk']).exists():
+            return super(PointDetailView, self).get(request, *args, **kwargs)
+        else:
+            return HttpResponseForbidden(u'Brak dostępu')
+
     def get_context_data(self, **kwargs):
         context = super(PointDetailView, self).get_context_data(**kwargs)
         context['attachment_list'] = council_models.Attachment.objects.filter(
@@ -229,6 +314,15 @@ class PointUpdateView(LoginRequiredMixin, UpdateView):
     model = council_models.Point
     form_class = council_forms.PointForm
     template_name = 'council/add_point.html'
+
+    def get(self, request, *args, **kwargs):
+        person = get_person_by_email(request.user.email)
+        point = self.get_object()
+        if is_supervisor(person) or point.owner.person == person:
+            return super(PointUpdateView, self).get(PointUpdateView, request,
+                                                    *args, **kwargs)
+        else:
+            return HttpResponseForbidden(u'Brak dostępu')
 
     def form_valid(self, form):
         form.save(commit=False)
@@ -253,37 +347,39 @@ class PointUpdateView(LoginRequiredMixin, UpdateView):
 class PointDelete(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
         point = council_models.Point.objects.get(pk=kwargs['pk'])
-        meeting_pk = point.meeting.pk
-        council_models.ResolutionPoint.objects.filter(point=point).delete()
-        council_models.Attachment.objects.filter(point=point).delete()
-        council_models.VoteOutcome.objects.filter(point=point).delete()
-        council_models.Access.objects.filter(point=point).delete()
-        point.delete()
-        return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
+        person = get_person_by_email(request.user.email)
+        if is_supervisor(person) or point.owner.person == person:
+            meeting_pk = point.meeting.pk
+            council_models.ResolutionPoint.objects.filter(point=point).delete()
+            council_models.Attachment.objects.filter(point=point).delete()
+            council_models.VoteOutcome.objects.filter(point=point).delete()
+            council_models.Access.objects.filter(point=point).delete()
+            point.delete()
+            return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
+        else:
+            return HttpResponseForbidden(u'Brak dostępu')
 
 
-class PersonCreateForm(LoginRequiredMixin, CreateView):
+class PersonCreateForm(LoginRequiredMixin, CheckGroupMixin, CreateView):
+    required_group = 'supervisor'
+
     form_class = council_forms.PersonForm
     template_name = 'council/add_person.html'
-
-    def get(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            person = council_models.Person.objects.filter(
-                email=request.user.email).first()
-            if person and not person.is_creator:
-                return HttpResponseForbidden(u'Brak dostępu')
-        return super(PersonCreateForm, self).get(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse('person_list')
 
 
-class PersonListView(LoginRequiredMixin, ListView):
+class PersonListView(LoginRequiredMixin, CheckGroupMixin, ListView):
+    required_group = 'supervisor'
+
     model = council_models.Person
     template_name = 'council/person_list.html'
 
 
-class InviteAllCouncilMembers(LoginRequiredMixin, View):
+class InviteAllCouncilMembers(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
     def dispatch(self, request, *args, **kwargs):
         meeting_pk = kwargs['pk']
         meeting = council_models.Meeting.objects.get(pk=meeting_pk)
@@ -297,7 +393,9 @@ class InviteAllCouncilMembers(LoginRequiredMixin, View):
         return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
 
 
-class InvitedCreateView(LoginRequiredMixin, TemplateView):
+class InvitedCreateView(LoginRequiredMixin, CheckGroupMixin, TemplateView):
+    required_group = 'supervisor'
+
     template_name = 'council/add_invited.html'
 
     def get_context_data(self, **kwargs):
@@ -317,6 +415,16 @@ class InvitedCreateView(LoginRequiredMixin, TemplateView):
                 council_models.Invited.objects.get_or_create(
                     meeting=meeting,
                     person=council_models.Person.objects.get(pk=per))
+        return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
+
+
+class InvitedDelete(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
+    def dispatch(self, request, *args, **kwargs):
+        invited = council_models.Invited.objects.get(pk=kwargs['pk'])
+        meeting_pk = invited.meeting.pk
+        invited.delete()
         return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
 
 
@@ -467,7 +575,9 @@ class GetInvitationLetter(LoginRequiredMixin, View):
         return response
 
 
-class SendInvitation(LoginRequiredMixin, View):
+class SendInvitation(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
     def get(self, request, *args, **kwargs):
         meeting = council_models.Meeting.objects.get(pk=kwargs['pk'])
         receivers = [inv.person.email for inv in
@@ -483,3 +593,16 @@ class SendInvitation(LoginRequiredMixin, View):
                   recipient_list=receivers,
                   fail_silently=False)
         return redirect(reverse_lazy('meeting_detail', args=(meeting.pk,)))
+
+
+def is_supervisor(person):
+    if person:
+        return person.group == council_dicts.SUPERVISOR_GROUP
+    return False
+
+
+def get_person_by_email(email):
+    try:
+        return council_models.Person.objects.get(email=email)
+    except council_models.Person.DoesNotExist:
+        return None
