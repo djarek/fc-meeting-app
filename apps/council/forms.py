@@ -35,12 +35,21 @@ class PointForm(forms.ModelForm):
         model = council_models.Point
         exclude = ('meeting', 'owner',)
 
+    def clean(self):
+        cd = super(PointForm, self).clean()
+        if 'number' in cd and cd['number']:
+            if council_models.Point.objects.filter(
+                    meeting__pk=self.initial['meeting_pk'],
+                    number=cd['number']).exists():
+                self.add_error('number', u'Podany numer punktu już istnieje.')
+
+        return cd
 
 class PersonForm(forms.ModelForm):
     class Meta:
         model = council_models.Person
         fields = ('scientific_title', 'first_name', 'last_name',
-                  'email', 'is_creator', 'is_member')
+                  'email', 'group', 'is_member')
         exclude = ('lookup', 'is_active')
 
 

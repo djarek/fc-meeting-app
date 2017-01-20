@@ -4,19 +4,8 @@ from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
 
-
-TITLES_CHOICES = [
-    ('1', u'inż.'),
-    ('2', u'mgr inż.'),
-    ('3', u'dr'),
-    ('4', u'dr inż.'),
-    ('5', u'dr hab.'),
-    ('6', u'dr hab. inż.'),
-    ('7', u'prof. dr hab.'),
-    ('8', u'prof. dr hab. inż.'),
-]
+from apps.council.dictionaries import TITLES_CHOICES, GROUPS
 
 
 def attachment_directory_path(instance, filename):
@@ -32,15 +21,6 @@ def attachment_directory_path(instance, filename):
         return os.path.join(
             settings.MEDIA_ROOT, 'uploads', instance._meta.app_label,
             'resolution', str(instance.resolution.pk), filename)
-
-
-def validate_point_number(value):
-    numbers = Point.objects.filter(number=value).first()
-    if numbers:
-        raise ValidationError(
-            u'Punkt o numerze %(value)s już istnieje!',
-            params={'value': value},
-        )
 
 
 class Person(models.Model):
@@ -60,18 +40,16 @@ class Person(models.Model):
     email = models.EmailField(
         verbose_name=u'Adres e-mail',
         unique=True)
+    group = models.CharField(
+        max_length=12,
+        choices=GROUPS,
+        verbose_name=u'Grupa')
     is_active = models.BooleanField(
         default=True,
         verbose_name=u'Aktywne konto')
-    is_creator = models.BooleanField(
-        default=False,
-        verbose_name=u'Konto zarządzające')
     is_member = models.BooleanField(
         default=False,
         verbose_name=u'Członek rady')
-    is_small_quorum = models.BooleanField(
-        default=False,
-        verbose_name=u'Członek małego kworum')
 
     def save(self, *args, **kwargs):
         if self.scientific_title:
@@ -93,13 +71,6 @@ class Person(models.Model):
 
     def __unicode__(self):
         return u'{}'.format(self.lookup)
-
-
-class Group(models.Model):
-    name = models.CharField(max_length=50, verbose_name=u'Nazwa grupy')
-
-    def __unicode__(self):
-        return self.name
 
 
 class FacultyCouncil(models.Model):
@@ -163,9 +134,6 @@ class Invited(models.Model):
     person = models.ForeignKey('Person', verbose_name=u'Osoba')
     meeting = models.ForeignKey('Meeting',
                                 verbose_name=u'Spotkanie Rady Wydziału')
-    group = models.ForeignKey('Group',
-                              verbose_name=u'Grupa',
-                              null=True)
     is_present = models.BooleanField(default=False, verbose_name=u'Obecny')
 
     def __unicode__(self):
@@ -175,17 +143,12 @@ class Invited(models.Model):
 class Access(models.Model):
     point = models.ForeignKey('Point', verbose_name=u'Punkt spotkania')
     invited = models.ForeignKey('Invited', verbose_name=u'Zaproszona osoba')
-    group = models.ForeignKey('Group', verbose_name=u'Grupa')
-
-    def __unicode__(self):
-        return u'{} {}'.format(self.point, self.group)
 
 
 class Point(models.Model):
     number = models.PositiveIntegerField(
         verbose_name=u'Numer punktu',
-        validators=[MinValueValidator(1), MaxValueValidator(9999),
-                    validate_point_number])
+        validators=[MinValueValidator(1), MaxValueValidator(9999)])
     title = models.CharField(
         max_length=255,
         verbose_name=u'Tytuł')

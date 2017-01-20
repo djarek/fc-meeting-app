@@ -55,9 +55,15 @@ class LoginView(View):
         try:
             User.objects.get(email=email)
         except User.DoesNotExist:
-            User.objects.create_user(username=email,
-                                     email=email,
-                                     password=password)
+            if res:
+                User.objects.create_user(username=email,
+                                         email=email,
+                                         password=password)
+            else:
+                messages.error(request,
+                               u'Logowanie zakończyło się niepowodzeniem.')
+                return redirect('login')
+
         user = authenticate(username=email, password=password)
 
         if user is None:
@@ -66,16 +72,6 @@ class LoginView(View):
             return redirect('login')
 
         login(request, user)
-        if person.is_member:
-            member_group, c = Group.objects.get_or_create(name='member')
-            member_group.user_set.add(user)
-        if person.is_small_quorum:
-            small_quorum_group, c = Group.objects.get_or_create(
-                name='small_quorum')
-            small_quorum_group.user_set.add(user)
-        if person.is_creator:
-            creator_group, c = Group.objects.get_or_create(name='creator')
-            creator_group.user_set.add(user)
 
         return redirect('home')
 

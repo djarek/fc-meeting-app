@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
+{% load user_tags %}
 
 {% block breadcrumb_list %}
     <ol class="breadcrumb">
@@ -13,11 +14,15 @@
 {% block content %}
     <div class="col-xs-12 col-md-12">
         <h1>{{ object }}</h1>
-        <a href="{% url 'point_update' object.pk %}">
-            <button class="btn btn-default btn-warning">Edytuj</button>
-        </a>
 
-        <br><br>
+        {% if user|has_group:"supervisor" or user|is_point_owner:point.pk %}
+            <a href="{% url 'point_update' object.pk %}">
+                <button class="btn btn-default btn-warning">Edytuj</button>
+            </a>
+
+            <br><br>
+        {% endif %}
+
         <table class="table table-bordered table-striped">
             <tr>
                 <td><strong>Spotkanie</strong></td><td>{{ object.meeting.code }}</td>
@@ -91,10 +96,12 @@
                                 <a href="#">
                                     <button class="btn btn-default btn-primary">Pobierz</button>
                                 </a>
-                                <a href="{% url 'attachment_update' att.pk %}">
-                                    <button class="btn btn-default btn-warning">Edytuj</button>
-                                </a>
-                                <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'attachment_delete' att.pk %}">Usuń</button>
+                                {% if user|has_group:"supervisor" or user|is_point_owner:point.pk %}
+                                    <a href="{% url 'attachment_update' att.pk %}">
+                                        <button class="btn btn-default btn-warning">Edytuj</button>
+                                    </a>
+                                    <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'attachment_delete' att.pk %}">Usuń</button>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}
@@ -104,6 +111,7 @@
             <div role="tabpanel" class="tab-pane" id="votings">
                 <h1>Głosowania</h1>
 
+                {% if user|has_group:"supervisor" or user|is_point_owner:point.pk %}
                 <a class="btn btn-primary" href="{% url 'add_vote_outcome' object.pk %}">
                     <i class="fa fa-plus"></i> Dodaj głosowanie
                 </a>
@@ -112,6 +120,7 @@
                 </a>
 
                 <br><br>
+                {% endif %}
 
                 <table class="table table-bordered table-striped">
                     <thead>

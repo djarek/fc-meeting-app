@@ -1,3 +1,4 @@
+{% load user_tags %}
 
 <ul>
     {% if user.is_authenticated %}
@@ -5,9 +6,11 @@
             <a href="{% url 'council_list' %}"><span class="icon-calendar-full"></span> Rady Wydziału</a>
 
         </li>
-        <li>
-            <a href="{% url 'person_list' %}"><span class="icon-users"></span> Użytkownicy</a>
-        </li>
+        {% if user|has_group:"supervisor" %}
+            <li>
+                <a href="{% url 'person_list' %}"><span class="icon-users"></span> Użytkownicy</a>
+            </li>
+        {% endif %}
     {% else %}
         <li>
             <a href="{% url 'login' %}"><span class="icon-lock"></span> Login</a>
