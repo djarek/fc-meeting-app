@@ -208,6 +208,14 @@ class VoteOutcome(models.Model):
             self.abstain_votes)
 
 
+class Ballot(models.Model):
+    point = models.ForeignKey(
+        'Point',
+        verbose_name=u'Punkt')
+    description = models.TextField(
+        verbose_name=u'Opis')
+
+
 class Attachment(models.Model):
     point = models.ForeignKey(
         'Point',

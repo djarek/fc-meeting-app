@@ -66,6 +66,9 @@ urlpatterns = [
     url(r'^point/(?P<pk>\d+)/addvoting$',
         views.VoteOutcomeCreateView.as_view(), name='add_vote_outcome'),
 
+    url(r'^point/(?P<pk>\d+)/createvotingcard',
+        views.CreateVotingCard.as_view(), name='create_voting_card'),
+
     url(r'^point/(?P<pk>\d+)$',
         views.PointDetailView.as_view(), name='point_detail'),
 

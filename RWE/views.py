@@ -34,6 +34,7 @@ class LoginView(View):
             messages.error(request, u'Logowanie zakończyło się niepowodzeniem.')
             return redirect('login')
 
+        res = None
         if request.POST.get('ldap_login', None):
             ldap.set_option(ldap.OPT_REFERRALS, 0)
             ldap.protocol_version = 3
