@@ -33,7 +33,7 @@ class MeetingForm(forms.ModelForm):
 class PointForm(forms.ModelForm):
     class Meta:
         model = council_models.Point
-        exclude = ('meeting', 'owner',)
+        exclude = ('meeting', 'owner', 'is_final_agenda')
 
     def clean(self):
         cd = super(PointForm, self).clean()
@@ -45,12 +45,21 @@ class PointForm(forms.ModelForm):
 
         return cd
 
+
 class PersonForm(forms.ModelForm):
     class Meta:
         model = council_models.Person
         fields = ('scientific_title', 'first_name', 'last_name',
                   'email', 'group', 'is_member')
         exclude = ('lookup', 'is_active')
+
+
+class PersonEditForm(forms.ModelForm):
+    class Meta:
+        model = council_models.Person
+        fields = ('scientific_title', 'first_name', 'last_name',
+                  'group', 'is_member')
+        exclude = ('lookup', 'is_active', 'email')
 
 
 class AttachmentForm(forms.ModelForm):

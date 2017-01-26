@@ -2,7 +2,7 @@
 
 from docx import Document
 from docx.shared import Cm
-from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT, WD_ALIGN_PARAGRAPH
 from datetime import datetime
 
 import apps.council.models as council_models
@@ -101,6 +101,36 @@ def generate_invitation_letter(meeting):
         run.bold = True
         run = paragraph.add_run(u'\nRodzaj sprawy: {}'.format(point.category))
         run = paragraph.add_run(u'\nOpis: {}'.format(point.description))
+
+    return document
+
+
+def generate_voting_card(point, rows, cols):
+    document = Document()
+
+    # Setting margins
+    sections = document.sections
+    for section in sections:
+        section.left_margin = Cm(2.5)
+        section.top_margin = Cm(0)
+        section.right_margin = Cm(2.5)
+        section.bottom_margin = Cm(0)
+
+    yesNo = "TAK    NIE    WSTRZYM"
+
+    table = document.add_table(rows=rows, cols=cols)
+    votes = council_models.VoteOutcome.objects.filter(
+        point=point, is_public=False)
+
+    for row in table.rows:
+        for cell in row.cells:
+            p1 = cell.add_paragraph(point.description)
+            p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for vote in votes:
+                p2 = cell.add_paragraph(vote.description)
+                p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p3 = cell.add_paragraph(unicode(yesNo, 'utf-8'))
+                p3.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     return document
 

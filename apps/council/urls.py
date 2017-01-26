@@ -66,6 +66,9 @@ urlpatterns = [
     url(r'^point/(?P<pk>\d+)/addvoting$',
         views.VoteOutcomeCreateView.as_view(), name='add_vote_outcome'),
 
+    url(r'^point/(?P<pk>\d+)/createvotingcard',
+        views.CreateVotingCard.as_view(), name='create_voting_card'),
+
     url(r'^point/(?P<pk>\d+)$',
         views.PointDetailView.as_view(), name='point_detail'),
 
@@ -76,7 +79,10 @@ urlpatterns = [
         views.PointDelete.as_view(), name='point_delete'),
 
     url(r'^personlist/addperson$',
-        views.PersonCreateForm.as_view(), name='add_person'),
+        views.PersonCreateView.as_view(), name='add_person'),
+
+    url(r'^personlist/edit/(?P<pk>\d+)',
+        views.PersonUpdateView.as_view(), name='person_update'),
 
     url(r'^personlist/$',
         views.PersonListView.as_view(), name='person_list'),

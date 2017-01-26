@@ -815,7 +815,7 @@ pre code {
 }
 .row {
   margin-left: -15px;
-  margin-right: -15px;
+  margin-right: 12px;
 }
 .col-xs-1,
 .col-sm-1,
@@ -1051,6 +1051,7 @@ pre code {
   .col-sm-11,
   .col-sm-12 {
     float: left;
+    padding-top: 8px;
   }
   .col-sm-12 {
     width: 100%;
@@ -1080,7 +1081,8 @@ pre code {
     width: 33.33333333%;
   }
   .col-sm-3 {
-    width: 25%;
+    width: 27%;
+    padding-top: 10px;
   }
   .col-sm-2 {
     width: 16.66666667%;
@@ -17037,7 +17039,7 @@ span.CodeMirror-selectedtext {
  *
  * @version
  * 3.0.83 (July 02 2010)
- * 
+ *
  * @copyright
  * Copyright (C) 2004-2010 Alex Gorbatchev.
  *
@@ -22705,6 +22707,7 @@ input[type="file"] {
 }
 /* ./switch button */
 .btn {
+  margin-top: 24px;
   padding: 5px 20px;
   line-height: 28px;
   text-decoration: none;

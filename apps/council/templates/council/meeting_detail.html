@@ -58,9 +58,11 @@
             <div role="tabpanel" class="tab-pane active" id="points">
                 <h1>Punkty spotkania</h1>
 
-                <a class="btn btn-primary" href="{% url 'add_point' meeting.pk %}">
-                    <i class="fa fa-plus"></i> Dodaj punkt
-                </a>
+                {% if is_invited %}
+                    <a class="btn btn-primary" href="{% url 'add_point' meeting.pk %}">
+                        <i class="fa fa-plus"></i> Dodaj punkt
+                    </a>
+                {% endif %}
 
                 <a class="btn btn-warning" href="{% url 'invitation_letter' meeting.pk %}">
                     <i class="fa fa-envelope"></i> Pobierz zaproszenie

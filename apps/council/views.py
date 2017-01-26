@@ -113,7 +113,8 @@ class CouncilDelete(LoginRequiredMixin, CheckGroupMixin, View):
         return redirect(reverse_lazy('council_list'))
 
 
-class CouncilMemberCreateView(LoginRequiredMixin, CheckGroupMixin, TemplateView):
+class CouncilMemberCreateView(LoginRequiredMixin, CheckGroupMixin,
+                              TemplateView):
     required_group = 'supervisor'
 
     template_name = 'council/add_council_members.html'
@@ -201,6 +202,9 @@ class MeetingDetailView(LoginRequiredMixin, DetailView):
             meeting=self.object).order_by('person__last_name')
         context['attachment_list'] = council_models.Attachment.objects.filter(
             meeting=self.object)
+        person = get_person_by_email(self.request.user.email)
+        context['is_invited'] = context['invited_list'].filter(
+            person=person).exists()
         return context
 
 
@@ -265,7 +269,8 @@ class PointCreateView(LoginRequiredMixin, CreateView):
         meeting_pk = self.kwargs['pk']
         point.meeting = council_models.Meeting.objects.get(pk=meeting_pk)
         point.owner = council_models.Invited.objects.get(
-            person=get_person_by_email(self.request.user.email))
+            person=get_person_by_email(self.request.user.email),
+            meeting__pk=meeting_pk)
         super(PointCreateView, self).form_valid(form)
         invited = council_models.Invited.objects.filter(meeting__pk=meeting_pk)
         for i in invited:
@@ -360,7 +365,7 @@ class PointDelete(LoginRequiredMixin, View):
             return HttpResponseForbidden(u'Brak dostępu')
 
 
-class PersonCreateForm(LoginRequiredMixin, CheckGroupMixin, CreateView):
+class PersonCreateView(LoginRequiredMixin, CheckGroupMixin, CreateView):
     required_group = 'supervisor'
 
     form_class = council_forms.PersonForm
@@ -368,6 +373,21 @@ class PersonCreateForm(LoginRequiredMixin, CheckGroupMixin, CreateView):
 
     def get_success_url(self):
         return reverse('person_list')
+
+
+class PersonUpdateView(LoginRequiredMixin, CheckGroupMixin, UpdateView):
+    required_group = 'supervisor'
+    model = council_models.Person
+    form_class = council_forms.PersonEditForm
+    template_name = 'council/add_person.html'
+
+    def get_success_url(self):
+        return reverse('person_list')
+
+    def get_context_data(self, **kwargs):
+        context = super(PersonUpdateView, self).get_context_data(**kwargs)
+        context['is_edit'] = True
+        return context
 
 
 class PersonListView(LoginRequiredMixin, CheckGroupMixin, ListView):
@@ -517,7 +537,7 @@ class VoteOutcomeUpdateview(LoginRequiredMixin, UpdateView):
     template_name = 'council/add_vote.html'
 
     def form_valid(self, form):
-        vote_outcome = form.save(commit=False)
+        form.save(commit=False)
         return super(VoteOutcomeUpdateview, self).form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -593,6 +613,31 @@ class SendInvitation(LoginRequiredMixin, CheckGroupMixin, View):
                   recipient_list=receivers,
                   fail_silently=False)
         return redirect(reverse_lazy('meeting_detail', args=(meeting.pk,)))
+
+
+class CreateVotingCard(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+    rows = 5  # this is hardcoded only for now
+    cols = 2  # this is hardcoded only for now
+
+    def get(self, request, *args, **kwargs):
+        point_pk = kwargs['pk']
+        point = council_models.Point.objects.get(pk=point_pk)
+        document = council_functions.generate_voting_card(
+            point=point, rows=self.rows, cols=self.cols)
+        f = StringIO.StringIO()
+        document.save(f)
+        length = f.tell()
+        f.seek(0)
+        response = HttpResponse(
+            f.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.' +
+                         'wordprocessingml.document'
+        )
+        response['Content-Disposition'] =\
+            'attachment; filename=karta_punkt{}.docx'.format(point_pk)
+        response['Content-Length'] = length
+        return response
 
 
 def is_supervisor(person):

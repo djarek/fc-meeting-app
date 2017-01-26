@@ -47,8 +47,9 @@
             <div class="app-header">
 
                 <div class=" navbar-brnd bag-name">
-                    <a href="{% url 'home' %}"><img class=""
-                                    src="{% static 'images/logo.PNG' %}">Rada Wydziału Elektroniki</a>
+                    <a class="hidden-xs" href="{% url 'home' %}">
+                        <img class="" src="{% static 'images/logonew.svg' %}">Rada Wydziału Elektroniki
+                    </a>
                 </div>
 
                 <ul class="app-header-buttons visible-mobile">
@@ -62,7 +63,7 @@
                             <img src="" alt="">
                             <div class="contact-container">
                                 <a href="http://pwr.edu.pl">Politechnika Wrocławska</a>
-                                <span>Administrator</span>
+                                <span>{{ request.user }}</span>
                             </div>
                             <div class="contact-controls">
                                 <div class="dropdown">
