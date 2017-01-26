@@ -23,6 +23,7 @@
                 <th>Imię</th>
                 <th>Nazwisko</th>
                 <th>Adres e-mail</th>
+                <th>Akcje</th>
             </tr>
             </thead>
             <tbody>
@@ -32,6 +33,11 @@
                     <td>{{ obj.first_name }}</td>
                     <td>{{ obj.last_name }}</td>
                     <td>{{ obj.email }}</td>
+                    <td>
+                        <a href="{% url 'person_update' obj.pk %}">
+                            <button class="btn btn-default btn-warning">Edytuj</button>
+                        </a>
+                    </td>
                 </tr>
             {% endfor %}
             </tbody>

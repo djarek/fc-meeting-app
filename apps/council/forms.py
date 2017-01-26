@@ -54,6 +54,14 @@ class PersonForm(forms.ModelForm):
         exclude = ('lookup', 'is_active')
 
 
+class PersonEditForm(forms.ModelForm):
+    class Meta:
+        model = council_models.Person
+        fields = ('scientific_title', 'first_name', 'last_name',
+                  'group', 'is_member')
+        exclude = ('lookup', 'is_active', 'email')
+
+
 class AttachmentForm(forms.ModelForm):
     class Meta:
         model = council_models.Attachment

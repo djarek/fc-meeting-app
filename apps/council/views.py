@@ -202,6 +202,9 @@ class MeetingDetailView(LoginRequiredMixin, DetailView):
             meeting=self.object).order_by('person__last_name')
         context['attachment_list'] = council_models.Attachment.objects.filter(
             meeting=self.object)
+        person = get_person_by_email(self.request.user.email)
+        context['is_invited'] = context['invited_list'].filter(
+            person=person).exists()
         return context
 
 
@@ -362,7 +365,7 @@ class PointDelete(LoginRequiredMixin, View):
             return HttpResponseForbidden(u'Brak dostępu')
 
 
-class PersonCreateForm(LoginRequiredMixin, CheckGroupMixin, CreateView):
+class PersonCreateView(LoginRequiredMixin, CheckGroupMixin, CreateView):
     required_group = 'supervisor'
 
     form_class = council_forms.PersonForm
@@ -370,6 +373,21 @@ class PersonCreateForm(LoginRequiredMixin, CheckGroupMixin, CreateView):
 
     def get_success_url(self):
         return reverse('person_list')
+
+
+class PersonUpdateView(LoginRequiredMixin, CheckGroupMixin, UpdateView):
+    required_group = 'supervisor'
+    model = council_models.Person
+    form_class = council_forms.PersonEditForm
+    template_name = 'council/add_person.html'
+
+    def get_success_url(self):
+        return reverse('person_list')
+
+    def get_context_data(self, **kwargs):
+        context = super(PersonUpdateView, self).get_context_data(**kwargs)
+        context['is_edit'] = True
+        return context
 
 
 class PersonListView(LoginRequiredMixin, CheckGroupMixin, ListView):
