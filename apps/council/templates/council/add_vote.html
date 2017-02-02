@@ -50,3 +50,15 @@
     </form>
     </div>
 {% endblock %}
+
+
+{% block scripts %}
+    <script>
+        $(function () {
+            $('#id_is_public').bind('change', function() {
+                $('#id_ballot').closest('.form-group').toggle(!$(this).is(':checked'));
+            });
+            $('#id_is_public').trigger('change');
+        });
+    </script>
+{% endblock %}

@@ -39,20 +39,6 @@
             <tr>
                 <td><strong>Opis</strong></td><td>{{ object.description }}</td>
             </tr>
-            <tr>
-                <td><strong>Tajne głosowanie</strong></td>
-                <td>{% if point.is_secret %}Tak
-                    {% else %}Nie
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td><strong>Małe kworum</strong></td>
-                <td>{% if point.small_quorum %}Tak
-                    {% else %}Nie
-                    {% endif %}
-                </td>
-            </tr>
         </table>
 
         <br>
@@ -62,7 +48,13 @@
                 <a href="#attachments" aria-controls="attachments" role="tab" data-toggle="tab">Załączniki</a>
             </li>
             <li role="presentation">
-                <a href="#votings" aria-controls="attachments" role="tab" data-toggle="tab">Głosowania</a>
+                <a href="#public_votings" aria-controls="public_votes" role="tab" data-toggle="tab">Głosowania publiczne</a>
+            </li>
+            <li role="presentation">
+                <a href="#secret_votings" aria-controls="secret_votes" role="tab" data-toggle="tab">Głosowania tajne</a>
+            </li>
+            <li role="presentation">
+                <a href="#ballots" aria-controls="ballots" role="tab" data-toggle="tab">Karty do głosowania</a>
             </li>
         </ul>
 
@@ -108,8 +100,10 @@
                     </tbody>
                 </table>
             </div>
-            <div role="tabpanel" class="tab-pane" id="votings">
-                <h1>Głosowania</h1>
+
+
+            <div role="tabpanel" class="tab-pane" id="public_votings">
+                <h1>Głosowania publiczne</h1>
 
                 {% if user|has_group:"supervisor" or user|is_point_owner:point.pk %}
                 <a class="btn btn-primary" href="{% url 'add_vote_outcome' object.pk %}">
@@ -127,16 +121,16 @@
                         <tr>
                             <th>Numer głosowania</th>
                             <th>Opis</th>
-                            <th>Głosowanie publiczne</th>
+                            <th>Małe kworum</th>
                             <th>Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {% for v in vote_outcome_list %}
+                    {% for v in vote_outcome_public_list %}
                         <tr>
                             <td>{{ v.number }}</td>
                             <td>{{ v.description }}</td>
-                            <td>{{ v.is_public|yesno:"Tak,Nie" }}</td>
+                            <td>{{ v.small_quorum|yesno:"Tak,Nie" }}</td>
                             <td>
                                 <a href="{% url 'vote_update' v.pk %}">
                                     <button class="btn btn-default btn-warning">Edytuj</button>
@@ -144,6 +138,96 @@
                                 <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'vote_delete' v.pk %}">
                                     Usuń
                                 </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div role="tabpanel" class="tab-pane" id="secret_votings">
+                <h1>Głosowania tajne</h1>
+
+                {% if user|has_group:"supervisor" %}
+                    <a class="btn btn-primary" href="{% url 'add_vote_outcome' object.pk %}">
+                        <i class="fa fa-plus"></i> Dodaj głosowanie
+                    </a>
+                    <a class="btn btn-warning" href="{% url 'create_voting_card' object.pk %}">
+                        <i class="fa fa-plus"></i> Stwórz kartę do głosowania
+                    </a>
+
+                    <br><br>
+                {% endif %}
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Numer głosowania</th>
+                        <th>Numer karty do głosowania</th>
+                        <th>Opis</th>
+                        <th>Małe kworum</th>
+                        <th>Akcje</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for v in vote_outcome_secret_list %}
+                        <tr>
+                            <td>{{ v.number }}</td>
+                            <td>{{ v.ballot.number }}</td>
+                            <td>{{ v.description }}</td>
+                            <td>{{ v.small_quorum|yesno:"Tak,Nie" }}</td>
+                            <td>
+                                <a href="{% url 'vote_update' v.pk %}">
+                                    <button class="btn btn-default btn-warning">Edytuj</button>
+                                </a>
+                                <button class="btn btn-default btn-danger delete_btn" del_url="{% url 'vote_delete' v.pk %}">
+                                    Usuń
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div role="tabpanel" class="tab-pane" id="ballots">
+                <h1>Karty do głosowania</h1>
+
+                {% if user|has_group:"supervisor" %}
+                    <a class="btn btn-primary" href="{% url 'add_ballot' object.pk %}">
+                        <i class="fa fa-plus"></i> Dodaj kartę do głosowania
+                    </a>
+                    <br><br>
+                {% endif %}
+
+                <table class="table table-bordered table-striped">
+                    <thead>
+                    <tr>
+                        <th>Numer karty</th>
+                        <th>Opis</th>
+                        <th>Głosowania</th>
+                        <th>Akcje</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for b in ballots_list %}
+                        <tr>
+                            <td>{{ b.number }}</td>
+                            <td>{{ b.description }}</td>
+                            <td>
+                                {% for v in b.voteoutcome_set.all %}
+                                    {{ v.number }},
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <a href="{% url 'ballot_update' b.pk %}">
+                                    <button class="btn btn-default btn-warning">Edytuj</button>
+                                </a>
+                                <a href="{% url 'create_voting_card' b.pk %}">
+                                    <button class="btn btn-default btn-success">Stwórz kartę do głosowania</button>
+                                </a>
                             </td>
                         </tr>
                     {% endfor %}

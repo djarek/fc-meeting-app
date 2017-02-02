@@ -46,7 +46,8 @@ def generate_attendance_list(meeting):
         run.bold = True
 
     # table content
-    invited_list = council_models.Invited.objects.filter(meeting=meeting)
+    invited_list = council_models.Invited.objects.filter(
+        meeting=meeting).order_by('person__last_name')
     for invited in invited_list:
         row = table.add_row()
         row.cells[0].text = invited.person.get_title_verbose()
@@ -105,7 +106,7 @@ def generate_invitation_letter(meeting):
     return document
 
 
-def generate_voting_card(point, rows, cols):
+def generate_voting_card(ballot, rows, cols):
     document = Document()
 
     # Setting margins
@@ -119,12 +120,12 @@ def generate_voting_card(point, rows, cols):
     yesNo = "TAK    NIE    WSTRZYM"
 
     table = document.add_table(rows=rows, cols=cols)
-    votes = council_models.VoteOutcome.objects.filter(
-        point=point, is_public=False)
+    votes = council_models.VoteOutcome.objects.filter(ballot=ballot,
+                                                      is_public=False)
 
     for row in table.rows:
         for cell in row.cells:
-            p1 = cell.add_paragraph(point.description)
+            p1 = cell.add_paragraph(ballot.description)
             p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
             for vote in votes:
                 p2 = cell.add_paragraph(vote.description)

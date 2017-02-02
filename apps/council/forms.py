@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 from django import forms
+
 import apps.council.models as council_models
 
 
@@ -71,4 +72,36 @@ class AttachmentForm(forms.ModelForm):
 class VoteOutcomeForm(forms.ModelForm):
     class Meta:
         model = council_models.VoteOutcome
-        fields = ['number', 'description', 'is_public']
+        fields = ['number', 'description', 'is_public',
+                  'ballot', 'small_quorum']
+
+    def __init__(self, *args, **kwargs):
+        super(VoteOutcomeForm, self).__init__(*args, **kwargs)
+        self.fields['ballot'].required = True
+
+    def clean(self):
+        cd = super(VoteOutcomeForm, self).clean()
+        if 'number' in cd and cd['number']:
+            if council_models.VoteOutcome.objects.filter(
+                    point__pk=self.initial['point_pk'],
+                    number=cd['number']).exists():
+                self.add_error('number', u'Podany numer głosowania '
+                                         u'już istnieje.')
+        if cd['is_public']:
+            if 'ballot' in self.errors:
+                del self.errors['ballot']
+
+
+class BallotForm(forms.ModelForm):
+    class Meta:
+        model = council_models.Ballot
+        fields = ['number', 'description']
+
+    def clean(self):
+        cd = super(BallotForm, self).clean()
+        if 'number' in cd and cd['number'] != self.initial['number']:
+            if council_models.Ballot.objects.filter(
+                    point__pk=self.initial['point_pk'],
+                    number=cd['number']).exists():
+                self.add_error('number', u'Podany numer karty do głosowania '
+                                         u'już istnieje.')

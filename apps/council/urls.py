@@ -49,7 +49,8 @@ urlpatterns = [
         views.InviteAllCouncilMembers.as_view(), name='invite_all_members'),
 
     url(r'^meeting/(?P<pk>\d+)/upload$',
-        views.UploadMeetingAttachment.as_view(), name='upload_meeting_attachment'),
+        views.UploadMeetingAttachment.as_view(),
+        name='upload_meeting_attachment'),
 
     url(r'^meeting/(?P<pk>\d+)/attendancelist$',
         views.GetAttendanceList.as_view(), name='attendance_list'),
@@ -66,7 +67,10 @@ urlpatterns = [
     url(r'^point/(?P<pk>\d+)/addvoting$',
         views.VoteOutcomeCreateView.as_view(), name='add_vote_outcome'),
 
-    url(r'^point/(?P<pk>\d+)/createvotingcard',
+    url(r'^point/(?P<pk>\d+)/addballot$',
+        views.BallotCreateView.as_view(), name='add_ballot'),
+
+    url(r'^ballot/(?P<pk>\d+)/createvotingcard',
         views.CreateVotingCard.as_view(), name='create_voting_card'),
 
     url(r'^point/(?P<pk>\d+)$',
@@ -98,4 +102,8 @@ urlpatterns = [
 
     url(r'^voteoutcome/delete/(?P<pk>\d+)$',
         views.VoteOutcomeDelete.as_view(), name='vote_delete'),
+
+    url(r'^ballot/edit/(?P<pk>\d+)$',
+        views.BallotUpdateview.as_view(), name='ballot_update'),
+
 ]

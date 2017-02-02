@@ -199,6 +199,12 @@ class VoteOutcome(models.Model):
     is_public = models.BooleanField(
         default=True,
         verbose_name=u'Głosowanie publiczne')
+    small_quorum = models.BooleanField(
+        default=False,
+        verbose_name=u'Tylko małe kworum')
+    ballot = models.ForeignKey(
+        'Ballot', null=True, blank=True,
+        verbose_name=u'Karta do głosowania')
 
     def __unicode__(self):
         return u'Punkt: {}, za: {}, przeciw: {}, wstrzymało się: {}'.format(
@@ -209,11 +215,17 @@ class VoteOutcome(models.Model):
 
 
 class Ballot(models.Model):
+    number = models.PositiveIntegerField(
+        verbose_name=u'Numer karty',
+        validators=[MinValueValidator(1), MaxValueValidator(99)])
     point = models.ForeignKey(
         'Point',
         verbose_name=u'Punkt')
     description = models.TextField(
         verbose_name=u'Opis')
+
+    def __unicode__(self):
+        return u'Karta nr {}'.format(self.number)
 
 
 class Attachment(models.Model):
