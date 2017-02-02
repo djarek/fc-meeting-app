@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb_list %}
+    <ol class="breadcrumb">
+        <li><a href="{% url 'council_list' %}">Rady Wydziału</a></li>
+        <li><a href="{% url 'council_detail' point.meeting.council.pk %}">{{ point.meeting.council }}</a></li>
+        <li><a href="{% url 'meeting_detail' point.meeting.pk %}">{{ point.meeting }}</a></li>
+        <li><a href="{% url 'point_detail' point.pk %}">{{ point }}</a></li>
+        {% if is_edit %}
+            <li class="active">Edytuj kartę do głosowania</li>
+        {% else %}
+            <li class="active">Dodaj kartę do głosowania</li>
+        {% endif %}
+    </ol>
+{% endblock %}
+
+{% block content %}
+    <div class="col-xs-12 col-md-12">
+        {% if is_edit %}
+            <h1>Edytuj kartę do głosowania</h1>
+        {% else %}
+            <h1>Utwórz kartę do głosowania</h1>
+        {% endif %}
+
+        <form method="post" role="form" class="form-horizontal">
+            {% for field in form.visible_fields %}
+                <div class="form-group{% if field.errors %} has-error{% endif %}">
+                    <label for="div_{{ field.html_name }}" class="col-sm-2 control-label">
+                        {{ field.label_tag }}{% if field.field.required %} *{% endif %}
+                    </label>
+                    <div id="div_{{ field.html_name }}" class="col-sm-3">
+                        {{ field }}
+                    </div>
+                    <div class="text-muted pull-right">
+                        <small>{{ field.help_text }}</small>
+                    </div>
+                    <div class="help-block">
+                        {{ field.errors }}
+                    </div>
+                </div>
+            {% endfor %}
+            {% for hidden in form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
+            {% csrf_token %}
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    {% if is_edit %}
+                        Zapisz zmiany
+                    {% else %}
+                        Dodaj
+                    {% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

@@ -2,6 +2,7 @@
 import StringIO
 import json
 
+from django.db.models import Max
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse_lazy, reverse
@@ -249,7 +250,8 @@ class MeetingDelete(LoginRequiredMixin, CheckGroupMixin, View):
         return redirect(reverse_lazy('council_detail', args=(council_pk,)))
 
 
-class PointCreateView(LoginRequiredMixin, CreateView):
+class PointCreateView(LoginRequiredMixin, CheckGroupMixin, CreateView):
+    required_group = 'supervisor'
     form_class = council_forms.PointForm
     template_name = 'council/add_point.html'
 
@@ -262,7 +264,13 @@ class PointCreateView(LoginRequiredMixin, CreateView):
             return HttpResponseForbidden(u'Brak dostępu')
 
     def get_initial(self):
-        return {'meeting_pk': self.kwargs['pk']}
+        init = dict()
+        init['meeting_pk'] = self.kwargs['pk']
+        max_number = council_models.Point.objects.filter(
+            meeting__pk=self.kwargs['pk']).aggregate(
+            Max('number'))['number__max']
+        init['number'] = max_number + 1 if max_number else 1
+        return init
 
     def form_valid(self, form):
         point = form.save(commit=False)
@@ -310,24 +318,29 @@ class PointDetailView(LoginRequiredMixin, DetailView):
         context = super(PointDetailView, self).get_context_data(**kwargs)
         context['attachment_list'] = council_models.Attachment.objects.filter(
             point=self.object)
-        context['vote_outcome_list'] = council_models.VoteOutcome.objects.\
-            filter(point=self.object)
+        context['vote_outcome_public_list'] = council_models.VoteOutcome.\
+            objects.filter(point=self.object, is_public=True)
+        context['vote_outcome_secret_list'] = council_models.VoteOutcome.\
+            objects.filter(point=self.object, is_public=False)
+        context['ballots_list'] = council_models.Ballot.objects.filter(
+            point=self.object)
         return context
 
 
-class PointUpdateView(LoginRequiredMixin, UpdateView):
+class PointUpdateView(LoginRequiredMixin, CheckGroupMixin, UpdateView):
+    required_group = 'supervisor'
     model = council_models.Point
     form_class = council_forms.PointForm
     template_name = 'council/add_point.html'
 
     def get(self, request, *args, **kwargs):
-        person = get_person_by_email(request.user.email)
-        point = self.get_object()
-        if is_supervisor(person) or point.owner.person == person:
-            return super(PointUpdateView, self).get(PointUpdateView, request,
-                                                    *args, **kwargs)
-        else:
-            return HttpResponseForbidden(u'Brak dostępu')
+        return super(PointUpdateView, self).get(PointUpdateView, request,
+                                                *args, **kwargs)
+
+    def get_initial(self):
+        init = dict()
+        init['meeting_pk'] = self.object.meeting.pk
+        return init
 
     def form_valid(self, form):
         form.save(commit=False)
@@ -337,6 +350,7 @@ class PointUpdateView(LoginRequiredMixin, UpdateView):
         context = super(PointUpdateView, self).get_context_data(**kwargs)
         context['meeting'] = self.object.meeting
         context['is_edit'] = True
+        context['selected_category'] = self.object.category
         context['categories'] = json.dumps([
            {
                'id': p.category,
@@ -349,20 +363,18 @@ class PointUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('meeting_detail', args=(self.object.meeting.pk,))
 
 
-class PointDelete(LoginRequiredMixin, View):
+class PointDelete(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
     def dispatch(self, request, *args, **kwargs):
         point = council_models.Point.objects.get(pk=kwargs['pk'])
-        person = get_person_by_email(request.user.email)
-        if is_supervisor(person) or point.owner.person == person:
-            meeting_pk = point.meeting.pk
-            council_models.ResolutionPoint.objects.filter(point=point).delete()
-            council_models.Attachment.objects.filter(point=point).delete()
-            council_models.VoteOutcome.objects.filter(point=point).delete()
-            council_models.Access.objects.filter(point=point).delete()
-            point.delete()
-            return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
-        else:
-            return HttpResponseForbidden(u'Brak dostępu')
+        meeting_pk = point.meeting.pk
+        council_models.ResolutionPoint.objects.filter(point=point).delete()
+        council_models.Attachment.objects.filter(point=point).delete()
+        council_models.VoteOutcome.objects.filter(point=point).delete()
+        council_models.Access.objects.filter(point=point).delete()
+        point.delete()
+        return redirect(reverse_lazy('meeting_detail', args=(meeting_pk,)))
 
 
 class PersonCreateView(LoginRequiredMixin, CheckGroupMixin, CreateView):
@@ -510,7 +522,8 @@ class AttachmentDelete(LoginRequiredMixin, View):
         return redirect(reverse_lazy(url, args=(obj_pk,)))
 
 
-class VoteOutcomeCreateView(LoginRequiredMixin, CreateView):
+class VoteOutcomeCreateView(LoginRequiredMixin, CheckGroupMixin, CreateView):
+    required_group = 'supervisor'
     form_class = council_forms.VoteOutcomeForm
     template_name = 'council/add_vote.html'
 
@@ -520,6 +533,15 @@ class VoteOutcomeCreateView(LoginRequiredMixin, CreateView):
             pk=self.kwargs['pk'])
         vote_outcome.point = point
         return super(VoteOutcomeCreateView, self).form_valid(form)
+
+    def get_initial(self):
+        init = dict()
+        init['point_pk'] = self.kwargs['pk']
+        max_number = council_models.VoteOutcome.objects.filter(
+            point__pk=self.kwargs['pk']).aggregate(
+            Max('number'))['number__max']
+        init['number'] = max_number + 1 if max_number else 1
+        return init
 
     def get_context_data(self, **kwargs):
         context = super(VoteOutcomeCreateView, self).get_context_data(**kwargs)
@@ -531,7 +553,8 @@ class VoteOutcomeCreateView(LoginRequiredMixin, CreateView):
         return reverse_lazy('point_detail', args=(self.kwargs['pk'],))
 
 
-class VoteOutcomeUpdateview(LoginRequiredMixin, UpdateView):
+class VoteOutcomeUpdateview(LoginRequiredMixin, CheckGroupMixin, UpdateView):
+    required_group = 'supervisor'
     model = council_models.VoteOutcome
     form_class = council_forms.VoteOutcomeForm
     template_name = 'council/add_vote.html'
@@ -539,6 +562,11 @@ class VoteOutcomeUpdateview(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         form.save(commit=False)
         return super(VoteOutcomeUpdateview, self).form_valid(form)
+
+    def get_initial(self):
+        init = dict()
+        init['point_pk'] = self.object.point.pk
+        return init
 
     def get_context_data(self, **kwargs):
         context = super(VoteOutcomeUpdateview, self).get_context_data(**kwargs)
@@ -550,7 +578,9 @@ class VoteOutcomeUpdateview(LoginRequiredMixin, UpdateView):
         return reverse_lazy('point_detail', args=(self.object.point.pk,))
 
 
-class VoteOutcomeDelete(LoginRequiredMixin, View):
+class VoteOutcomeDelete(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
     def dispatch(self, request, *args, **kwargs):
         vote = council_models.VoteOutcome.objects.get(pk=kwargs['pk'])
         point_pk = vote.point.pk
@@ -558,7 +588,65 @@ class VoteOutcomeDelete(LoginRequiredMixin, View):
         return redirect(reverse_lazy('point_detail', args=(point_pk,)))
 
 
-class GetAttendanceList(LoginRequiredMixin, View):
+class BallotCreateView(LoginRequiredMixin, CheckGroupMixin, CreateView):
+    required_group = 'supervisor'
+    form_class = council_forms.BallotForm
+    template_name = 'council/add_ballot.html'
+
+    def form_valid(self, form):
+        ballot = form.save(commit=False)
+        point = council_models.Point.objects.get(
+            pk=self.kwargs['pk'])
+        ballot.point = point
+        return super(BallotCreateView, self).form_valid(form)
+
+    def get_initial(self):
+        init = dict()
+        init['point_pk'] = self.kwargs['pk']
+        max_number = council_models.Ballot.objects.filter(
+            point__pk=self.kwargs['pk']).aggregate(
+            Max('number'))['number__max']
+        init['number'] = max_number + 1 if max_number else 1
+        return init
+
+    def get_context_data(self, **kwargs):
+        context = super(BallotCreateView, self).get_context_data(**kwargs)
+        context['point'] = council_models.Point.objects.get(
+            pk=self.kwargs['pk'])
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('point_detail', args=(self.kwargs['pk'],))
+
+
+class BallotUpdateview(LoginRequiredMixin, CheckGroupMixin, UpdateView):
+    required_group = 'supervisor'
+    model = council_models.Ballot
+    form_class = council_forms.BallotForm
+    template_name = 'council/add_ballot.html'
+
+    def form_valid(self, form):
+        form.save(commit=False)
+        return super(BallotUpdateview, self).form_valid(form)
+
+    def get_initial(self):
+        init = dict()
+        init['point_pk'] = self.object.point.pk
+        return init
+
+    def get_context_data(self, **kwargs):
+        context = super(BallotUpdateview, self).get_context_data(**kwargs)
+        context['point'] = self.object.point
+        context['is_edit'] = True
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('point_detail', args=(self.object.point.pk,))
+
+
+class GetAttendanceList(LoginRequiredMixin, CheckGroupMixin, View):
+    required_group = 'supervisor'
+
     def get(self, request, *args, **kwargs):
         meeting = council_models.Meeting.objects.get(pk=kwargs['pk'])
         document = council_functions.generate_attendance_list(meeting=meeting)
@@ -621,10 +709,10 @@ class CreateVotingCard(LoginRequiredMixin, CheckGroupMixin, View):
     cols = 2  # this is hardcoded only for now
 
     def get(self, request, *args, **kwargs):
-        point_pk = kwargs['pk']
-        point = council_models.Point.objects.get(pk=point_pk)
+        ballot_pk = kwargs['pk']
+        ballot = council_models.Ballot.objects.get(pk=ballot_pk)
         document = council_functions.generate_voting_card(
-            point=point, rows=self.rows, cols=self.cols)
+            ballot=ballot, rows=self.rows, cols=self.cols)
         f = StringIO.StringIO()
         document.save(f)
         length = f.tell()
@@ -635,7 +723,8 @@ class CreateVotingCard(LoginRequiredMixin, CheckGroupMixin, View):
                          'wordprocessingml.document'
         )
         response['Content-Disposition'] =\
-            'attachment; filename=karta_punkt{}.docx'.format(point_pk)
+            'attachment; filename=karta_{}_punkt{}.docx'.format(
+                ballot.number, ballot.point.number)
         response['Content-Length'] = length
         return response
 

@@ -61,6 +61,11 @@
             data:  JSON.parse('{{ categories|safe }}')
         });
 
+        $('#id_is_public').bind('change', function() {
+            console.log('asd');
+            $('#id_ballot').closest('.form-group').toggle($(this).val() === false);
+        });
+        $('#id_is_public').trigger('change');
     });
 </script>
 {% endblock %}
